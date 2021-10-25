@@ -19,12 +19,13 @@ static void decrease_array_length(struct array_list *arr_list)
 
 static void increase_array_size(struct array_list *arr_list)
 {
+        const size_t SCALING_FACTOR = 2;
         const size_t obj_size = sizeof(struct object);
         const size_t arr_length = arr_list->length;
         const size_t arr_size = arr_list->size;
-        const size_t SCALING_FACTOR = 2;
+        const size_t new_arr_size = arr_size * SCALING_FACTOR;
 
-        const size_t new_size = obj_size * arr_size * SCALING_FACTOR;
+        const size_t new_size = obj_size * new_arr_size;
 
         arr_list->array = realloc(arr_list->array, new_size);
 
@@ -34,10 +35,10 @@ static void increase_array_size(struct array_list *arr_list)
                 exit(EXIT_FAILURE);
         }
 
-        for (int i = arr_length; i < arr_size; i++)
+        for (int i = arr_length; i < new_arr_size; i++)
                 memset(&arr_list->array[i], 0, obj_size);
 
-        arr_list->size *= SCALING_FACTOR;
+        arr_list->size = new_arr_size;
 }
 
 struct array_list new_array_list(size_t arr_size)
