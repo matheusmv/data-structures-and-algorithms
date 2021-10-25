@@ -10,8 +10,8 @@
 
 struct object {
         int number;
-        char state[50];
-        char abbreviation[50];
+        char *state;
+        char *abbreviation;
 };
 
 struct array_list {
