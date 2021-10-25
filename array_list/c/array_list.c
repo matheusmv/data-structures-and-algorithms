@@ -2,21 +2,29 @@
 
 static void increase_array_length(struct array_list *arr_list)
 {
-        if (arr_list->length < arr_list->size) {
+        const size_t arr_length = arr_list->length;
+        const size_t arr_size = arr_list->size;
+
+        if (arr_length < arr_size)
                 arr_list->length += 1;
-        }
 }
 
 static void decrease_array_length(struct array_list *arr_list)
 {
-        if (arr_list->length > 0) {
+        const size_t arr_length = arr_list->length;
+
+        if (arr_length > 0)
                 arr_list->length -= 1;
-        }
 }
 
-void increase_array_size(struct array_list *arr_list)
+static void increase_array_size(struct array_list *arr_list)
 {
-        size_t new_size = (sizeof(arr_list->array[0]) * arr_list->size) * 2;
+        const size_t obj_size = sizeof(struct object);
+        const size_t arr_length = arr_list->length;
+        const size_t arr_size = arr_list->size;
+        const size_t SCALING_FACTOR = 2;
+
+        const size_t new_size = obj_size * arr_size * SCALING_FACTOR;
 
         arr_list->array = realloc(arr_list->array, new_size);
 
@@ -26,12 +34,17 @@ void increase_array_size(struct array_list *arr_list)
                 exit(EXIT_FAILURE);
         }
 
-        arr_list->size *= 2;
+        for (int i = arr_length; i < arr_size; i++)
+                memset(&arr_list->array[i], 0, obj_size);
+
+        arr_list->size *= SCALING_FACTOR;
 }
 
 struct array_list new_array_list(size_t arr_size)
 {
-        struct object *new_array = malloc(arr_size * sizeof(struct object));
+        const size_t obj_size = sizeof(struct object);
+
+        struct object *new_array = malloc(arr_size * obj_size);
 
         if (new_array == NULL) {
                 fprintf(stderr, "malloc() failed. (%s)\n", GETSTDERROR());
@@ -61,46 +74,58 @@ size_t get_length(struct array_list *arr_list)
 
 void append_obj(struct array_list *arr_list, struct object object)
 {
-        if (arr_list->length == arr_list->size - 1)
+        const size_t arr_length = arr_list->length;
+        const size_t arr_size = arr_list->size - 1;
+        const size_t obj_size = sizeof(struct object);
+
+        if (arr_length == arr_size)
                 increase_array_size(arr_list);
 
-        memcpy(&arr_list->array[arr_list->length], &object,
-               sizeof(struct object));
-
+        memmove(&arr_list->array[arr_length], &object, obj_size);
         increase_array_length(arr_list);
 }
 
 void remove_obj(struct array_list *arr_list)
 {
-        if (arr_list->length > 0) {
-                memset(&arr_list->array[arr_list->length - 1], 0,
-                       sizeof(struct object));
+        const size_t arr_length = arr_list->length;
+        const size_t arr_end = arr_length - 1;
+        const size_t obj_size = sizeof(struct object);
+
+        if (arr_length > 0) {
+                memset(&arr_list->array[arr_end], 0, obj_size);
                 decrease_array_length(arr_list);
         }
 }
 
 void add_obj_at(struct array_list *arr_list, struct object object, int index)
 {
-        if (index > arr_list->length || index < 0) {
+        const size_t arr_length = arr_list->length;
+        const size_t arr_end = arr_length - 1;
+        const size_t arr_size = arr_list->size - 1;
+        const size_t obj_size = sizeof(struct object);
+
+        if (index > arr_length || index < 0) {
                 fprintf(stderr, "***index [%d] out of bounds***\n", index);
                 destroy_array_list(arr_list);
                 exit(EXIT_FAILURE);
         }
 
-        if (arr_list->length == arr_list->size - 1)
+        if (arr_length == arr_size)
                 increase_array_size(arr_list);
 
-        for (int i = arr_list->length - 1; i >= index; i--)
+        for (int i = arr_end; i >= index; i--)
                 arr_list->array[i + 1] = arr_list->array[i];
 
-        memcpy(&arr_list->array[index], &object, sizeof(struct object));
+        memmove(&arr_list->array[index], &object, obj_size);
 
         increase_array_length(arr_list);
 }
 
 struct object get_obj_at(struct array_list *arr_list, int index)
 {
-        if (index > arr_list->length - 1 || index < 0) {
+        const size_t arr_end = arr_list->length - 1;
+
+        if (index > arr_end || index < 0) {
                 fprintf(stderr, "***index [%d] out of bounds***\n", index);
                 destroy_array_list(arr_list);
                 exit(EXIT_FAILURE);
@@ -111,37 +136,27 @@ struct object get_obj_at(struct array_list *arr_list, int index)
 
 void remove_obj_at(struct array_list *arr_list, int index)
 {
-        if (arr_list->length > 0) {
-                if (index > arr_list->length - 1 || index < 0) {
-                        fprintf(stderr, "***index [%d] out of bounds***\n", index);
-                        destroy_array_list(arr_list);
-                        exit(EXIT_FAILURE);
-                }
+        const size_t arr_length = arr_list->length;
+        const size_t arr_end = arr_length - 1;
+        const size_t obj_size = sizeof(struct object);
 
-                const int start = 0;
-                const int end = arr_list->length - 1;
+        if (index > arr_end || index < 0) {
+                fprintf(stderr, "***index [%d] out of bounds***\n", index);
+                destroy_array_list(arr_list);
+                exit(EXIT_FAILURE);
+        }
 
-                if (index == start) {
-                        for (int index = start; index < arr_list->length; index++) {
-                                arr_list->array[index] = arr_list->array[index + 1];
-                        }
-                        memset(&arr_list->array[end], 0, sizeof(struct object));
+        if (arr_length > 0) {
+                if (index == arr_end) {
+                        memset(&arr_list->array[arr_end], 0, obj_size);
                         decrease_array_length(arr_list);
                         return;
                 }
 
-                if (index == end) {
-                        memset(&arr_list->array[end], 0, sizeof(struct object));
-                        decrease_array_length(arr_list);
-                        return;
-                }
+                for (int i = index; i < arr_length; i++)
+                        arr_list->array[i] = arr_list->array[i + 1];
 
-                const int middle = index;
-
-                for (int index = middle; index < arr_list->length; index++) {
-                        arr_list->array[index] = arr_list->array[index + 1];
-                }
-                memset(&arr_list->array[end], 0, sizeof(struct object));
+                memset(&arr_list->array[arr_end], 0, obj_size);
                 decrease_array_length(arr_list);
         }
 }
