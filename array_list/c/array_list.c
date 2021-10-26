@@ -1,6 +1,12 @@
 #include "array_list.h"
 
-static void increase_array_length(struct array_list *arr_list)
+typedef struct __array_list {
+        struct object *array;
+        size_t size;
+        size_t length;
+} array_list;
+
+static void increase_array_length(array_list *arr_list)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_size = arr_list->size;
@@ -9,7 +15,7 @@ static void increase_array_length(struct array_list *arr_list)
                 arr_list->length += 1;
 }
 
-static void decrease_array_length(struct array_list *arr_list)
+static void decrease_array_length(array_list *arr_list)
 {
         const size_t arr_length = arr_list->length;
 
@@ -17,7 +23,7 @@ static void decrease_array_length(struct array_list *arr_list)
                 arr_list->length -= 1;
 }
 
-static void increase_array_size(struct array_list *arr_list)
+static void increase_array_size(array_list *arr_list)
 {
         const size_t SCALING_FACTOR = 2;
         const size_t obj_size = sizeof(struct object);
@@ -41,20 +47,25 @@ static void increase_array_size(struct array_list *arr_list)
         arr_list->size = new_arr_size;
 }
 
-struct array_list new_array_list(size_t arr_size)
+array_list *new_array_list(size_t arr_size)
 {
         const size_t obj_size = sizeof(struct object);
+
+        array_list *arr_list = malloc(sizeof(array_list));
+
+        if (arr_list == NULL)
+                return NULL;
 
         struct object *new_array = malloc(arr_size * obj_size);
 
         if (new_array == NULL) {
-                fprintf(stderr, "malloc() failed. (%s)\n", GETSTDERROR());
-                exit(EXIT_FAILURE);
+                free(arr_list);
+                return NULL;
         }
 
         memset(new_array, 0, sizeof(*new_array));
 
-        struct array_list arr_list = {
+        *arr_list = (array_list) {
                 .array = new_array,
                 .size = arr_size,
                 .length = 0,
@@ -63,17 +74,17 @@ struct array_list new_array_list(size_t arr_size)
         return arr_list;
 }
 
-size_t get_size(struct array_list *arr_list)
+size_t get_size(array_list *arr_list)
 {
         return arr_list->size;
 }
 
-size_t get_length(struct array_list *arr_list)
+size_t get_length(array_list *arr_list)
 {
         return arr_list->length;
 }
 
-void append_obj(struct array_list *arr_list, struct object object)
+void append_obj(array_list *arr_list, struct object object)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_size = arr_list->size - 1;
@@ -86,7 +97,7 @@ void append_obj(struct array_list *arr_list, struct object object)
         increase_array_length(arr_list);
 }
 
-void remove_obj(struct array_list *arr_list)
+void remove_obj(array_list *arr_list)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_end = arr_length - 1;
@@ -98,7 +109,7 @@ void remove_obj(struct array_list *arr_list)
         }
 }
 
-void add_obj_at(struct array_list *arr_list, struct object object, int index)
+void add_obj_at(array_list *arr_list, struct object object, int index)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_end = arr_length - 1;
@@ -122,7 +133,7 @@ void add_obj_at(struct array_list *arr_list, struct object object, int index)
         increase_array_length(arr_list);
 }
 
-struct object get_obj_at(struct array_list *arr_list, int index)
+struct object get_obj_at(array_list *arr_list, int index)
 {
         const size_t arr_end = arr_list->length - 1;
 
@@ -135,7 +146,7 @@ struct object get_obj_at(struct array_list *arr_list, int index)
         return arr_list->array[index];
 }
 
-void remove_obj_at(struct array_list *arr_list, int index)
+void remove_obj_at(array_list *arr_list, int index)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_end = arr_length - 1;
@@ -162,12 +173,17 @@ void remove_obj_at(struct array_list *arr_list, int index)
         }
 }
 
-void destroy_array_list(struct array_list *arr_list)
+void destroy_array_list(array_list *arr_list)
 {
         if (arr_list->array != NULL) {
                 free(arr_list->array);
                 arr_list->array = NULL;
                 arr_list->size = 0;
                 arr_list->length = 0;
+        }
+
+        if (arr_list != NULL) {
+                free(arr_list);
+                arr_list = NULL;
         }
 }

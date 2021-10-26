@@ -3,7 +3,7 @@
 */
 #include "array_list.h"
 
-void show(struct array_list *);
+void show(array_list *);
 
 struct object states[] = {
         {.number = 1, .state = "Acre", .abbreviation = "AC"},
@@ -37,58 +37,63 @@ struct object states[] = {
 
 int main(int argc, char *argv[])
 {
-        struct array_list state_list = new_array_list(10);
+        array_list *state_list = new_array_list(10);
 
-        show(&state_list);
+        if (state_list == NULL)
+                return EXIT_FAILURE;
+
+        show(state_list);
 
         const int arr_s = sizeof(states) / sizeof(struct object);
 
         for (int i = 0; i < arr_s; i++)
-                append_obj(&state_list, states[i]);
+                append_obj(state_list, states[i]);
 
-        show(&state_list);
+        show(state_list);
 
-        remove_obj(&state_list);
-        remove_obj(&state_list);
-        remove_obj(&state_list);
-        remove_obj(&state_list);
-        remove_obj(&state_list);
+        remove_obj(state_list);
+        remove_obj(state_list);
+        remove_obj(state_list);
+        remove_obj(state_list);
+        remove_obj(state_list);
 
-        show(&state_list);
+        show(state_list);
 
-        add_obj_at(&state_list, states[10], 0);
-        add_obj_at(&state_list, states[10], 2);
-        add_obj_at(&state_list, states[10], 4);
-        add_obj_at(&state_list, states[10], 8);
+        add_obj_at(state_list, states[10], 0);
+        add_obj_at(state_list, states[10], 2);
+        add_obj_at(state_list, states[10], 4);
+        add_obj_at(state_list, states[10], 8);
 
-        show(&state_list);
+        show(state_list);
 
-        struct object result = get_obj_at(&state_list, 4);
+        struct object result = get_obj_at(state_list, 4);
 
         printf("%s - %s\n", result.state, result.abbreviation);
 
-        remove_obj_at(&state_list, 5);
+        remove_obj_at(state_list, 5);
 
-        show(&state_list);
+        show(state_list);
 
-        destroy_array_list(&state_list);
+        destroy_array_list(state_list);
 
         return EXIT_SUCCESS;
 }
 
-void show(struct array_list *arr)
+void show(array_list *arr)
 {
-        printf("array size: %ld | array length: %ld\n",
-               get_size(arr), get_length(arr));
+        const size_t arr_size = get_size(arr);
+        const size_t arr_length = get_length(arr);
 
-        if (arr->length == 0) {
+        printf("array size: %ld | array length: %ld\n", arr_size, arr_length);
+
+        if (arr_length == 0) {
                 printf("***empty***\n");
         } else {
-                for (int i = 0; i < arr->length; i++) {
+                for (int i = 0; i < arr_length; i++) {
+                        struct object state = get_obj_at(arr, i);
+
                         printf("\t%d - %s - %s\n",
-                               arr->array[i].number,
-                               arr->array[i].state,
-                               arr->array[i].abbreviation);
+                               state.number, state.state, state.abbreviation);
                 }
                 printf("\n");
         }
