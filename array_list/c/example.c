@@ -1,11 +1,9 @@
 /**
- * gcc array_list.c example.c -o program
-*/
+ * gcc data_types.c array_list.c example.c -o program
+ */
 #include "array_list.h"
 
-void show(array_list *);
-
-struct object states[] = {
+struct state states[] = {
         {.number = 1, .state = "Acre", .abbreviation = "AC"},
         {.number = 2, .state = "Alagoas", .abbreviation = "AL"},
         {.number = 3, .state = "Amapá", .abbreviation = "AP"},
@@ -35,21 +33,32 @@ struct object states[] = {
         {.number = 27, .state = "Tocantins", .abbreviation = "TO"},
 };
 
+struct user users[] = {
+        {.username = "username 1", .password = "password 1"},
+        {.username = "username 2", .password = "password 2"},
+        {.username = "username 3", .password = "password 3"},
+        {.username = "username 4", .password = "password 4"},
+        {.username = "username 5", .password = "password 5"},
+};
+
+void show_states(array_list *);
+void show_users(array_list *);
+
 int main(int argc, char *argv[])
 {
-        array_list *state_list = new_array_list(10);
+        array_list *state_list = new_array_list(10, STATE_TYPE);
 
         if (state_list == NULL)
                 return EXIT_FAILURE;
 
-        show(state_list);
+        show_states(state_list);
 
-        const int arr_s = sizeof(states) / sizeof(struct object);
+        const int state_arr_s = sizeof(states) / sizeof(struct state);
 
-        for (int i = 0; i < arr_s; i++)
-                append_obj(state_list, states[i]);
+        for (int i = 0; i < state_arr_s; i++)
+                append_obj(state_list, (struct object) { ._state = states[i] });
 
-        show(state_list);
+        show_states(state_list);
 
         remove_obj(state_list);
         remove_obj(state_list);
@@ -57,29 +66,61 @@ int main(int argc, char *argv[])
         remove_obj(state_list);
         remove_obj(state_list);
 
-        show(state_list);
+        show_states(state_list);
 
-        add_obj_at(state_list, states[10], 0);
-        add_obj_at(state_list, states[10], 2);
-        add_obj_at(state_list, states[10], 4);
-        add_obj_at(state_list, states[10], 8);
+        add_obj_at(state_list, (struct object) { ._state = states[10] }, 0);
+        add_obj_at(state_list, (struct object) { ._state = states[10] }, 2);
+        add_obj_at(state_list, (struct object) { ._state = states[10] }, 4);
+        add_obj_at(state_list, (struct object) { ._state = states[10] }, 8);
 
-        show(state_list);
+        show_states(state_list);
 
-        struct object result = get_obj_at(state_list, 4);
+        struct state result = *(struct state *) get_obj_at(state_list, 4);
 
         printf("%s - %s\n", result.state, result.abbreviation);
 
         remove_obj_at(state_list, 5);
 
-        show(state_list);
+        show_states(state_list);
 
         destroy_array_list(state_list);
+
+        /********************************************************************/
+
+        array_list *users_list = new_array_list(4, USER_TYPE);
+
+        if (users_list == NULL)
+                return EXIT_FAILURE;
+
+        show_users(users_list);
+
+        const int user_arr_s = sizeof(users) / sizeof(struct user);
+
+        for (int i = 0; i < user_arr_s; i++)
+                append_obj(users_list, (struct object) { ._user = users[i] });
+
+        show_users(users_list);
+
+        remove_obj(users_list);
+        remove_obj(users_list);
+
+        show_users(users_list);
+
+        add_obj_at(users_list, (struct object) { ._user = users[2] }, 0);
+        add_obj_at(users_list, (struct object) { ._user = users[2] }, 4);
+
+        show_users(users_list);
+
+        remove_obj_at(users_list, 0);
+
+        show_users(users_list);
+
+        destroy_array_list(users_list);
 
         return EXIT_SUCCESS;
 }
 
-void show(array_list *arr)
+void show_states(array_list *arr)
 {
         const size_t arr_size = get_size(arr);
         const size_t arr_length = get_length(arr);
@@ -90,10 +131,29 @@ void show(array_list *arr)
                 printf("***empty***\n");
         } else {
                 for (int i = 0; i < arr_length; i++) {
-                        struct object state = get_obj_at(arr, i);
+                        struct state state = *(struct state *) get_obj_at(arr, i);
 
                         printf("\t%d - %s - %s\n",
                                state.number, state.state, state.abbreviation);
+                }
+                printf("\n");
+        }
+}
+
+void show_users(array_list *arr)
+{
+        const size_t arr_size = get_size(arr);
+        const size_t arr_length = get_length(arr);
+
+        printf("array size: %ld | array length: %ld\n", arr_size, arr_length);
+
+        if (arr_length == 0) {
+                printf("***empty***\n");
+        } else {
+                for (int i = 0; i < arr_length; i++) {
+                        struct user user = *(struct user *) get_obj_at(arr, i);
+
+                        printf("\t%s - %s\n", user.username, user.password);
                 }
                 printf("\n");
         }
