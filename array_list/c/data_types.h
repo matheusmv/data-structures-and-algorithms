@@ -30,7 +30,6 @@ enum array_types {
 };
 
 struct object {
-        int type;
         union {
                 char _char;
                 int _int;
@@ -44,6 +43,6 @@ struct object {
 
 int get_object_type(int key);
 size_t get_object_size(int key);
-void *get_object(struct object *object);
+void *get_object(struct object *object, int type);
 
 #endif

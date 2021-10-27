@@ -2,6 +2,7 @@
 
 typedef struct __array_list {
         struct object *array;
+        int type;
         size_t size;
         size_t length;
 } array_list;
@@ -49,6 +50,7 @@ static void increase_array_size(array_list *arr_list)
 
 array_list *new_array_list(size_t arr_size, int type)
 {
+        const int arr_type = get_object_type(type);
         const size_t obj_size = sizeof(struct object);
 
         array_list *arr_list = malloc(sizeof(array_list));
@@ -65,12 +67,9 @@ array_list *new_array_list(size_t arr_size, int type)
 
         memset(new_array, 0, sizeof(*new_array));
 
-        *new_array = (struct object) {
-                .type = get_object_type(type),
-        };
-
         *arr_list = (array_list) {
                 .array = new_array,
+                .type = arr_type,
                 .size = arr_size,
                 .length = 0,
         };
@@ -147,7 +146,7 @@ void *get_obj_at(array_list *arr_list, int index)
                 exit(EXIT_FAILURE);
         }
 
-        return get_object(&arr_list->array[index]);
+        return get_object(&arr_list->array[index], arr_list->type);
 }
 
 void remove_obj_at(array_list *arr_list, int index)

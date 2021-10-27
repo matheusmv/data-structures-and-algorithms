@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
         /********************************************************************/
 
-        array_list *users_list = new_array_list(4, USER_TYPE);
+        array_list *users_list = new_array_list(1, USER_TYPE);
 
         if (users_list == NULL)
                 return EXIT_FAILURE;
@@ -110,6 +110,10 @@ int main(int argc, char *argv[])
         add_obj_at(users_list, (struct object) { ._user = users[2] }, 4);
 
         show_users(users_list);
+
+        struct user usr = *(struct user *) get_obj_at(users_list, 4);
+
+        printf("%s - %s\n", usr.username, usr.password);
 
         remove_obj_at(users_list, 0);
 

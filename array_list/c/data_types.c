@@ -39,9 +39,9 @@ size_t get_object_size(int key)
         return lookup_table[key].value;
 }
 
-void *get_object(struct object *obj)
+void *get_object(struct object *obj, int type)
 {
-        switch (obj->type) {
+        switch (type) {
         case CHAR_TYPE:
                 return &obj->_char;
         case INT_TYPE:
