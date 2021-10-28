@@ -11,6 +11,9 @@
 
 #define GETSTDERROR() (strerror(errno))
 
+#define IN_ORDER false
+#define REVERSE true
+
 typedef struct __double_linked_list double_linked_list;
 
 double_linked_list *new_double_linked_list(int type);
@@ -23,6 +26,7 @@ void remove_last(double_linked_list *list);
 void insert_obj_at(double_linked_list *list, struct object object, int index);
 void *get_obj_at(double_linked_list *list, int index);
 void remove_obj_at(double_linked_list *list, int index);
+void show_list(double_linked_list *list, void (*to_string)(struct object object), bool reverse);
 void destroy_double_linked_list(double_linked_list *list);
 
 #endif
