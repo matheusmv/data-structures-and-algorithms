@@ -29,7 +29,8 @@ static void decrease_list_length(double_linked_list *list)
 static node *get_node(double_linked_list *list, int index)
 {
         if (!is_empty(list)) {
-                const size_t list_end = list->length - 1;
+                const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
 
                 if (index > list_end || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
@@ -170,9 +171,10 @@ void remove_last(double_linked_list *list)
 void insert_obj_at(double_linked_list *list, struct object object, int index)
 {
         if (list != NULL) {
-                const size_t list_end = list->length - 1;
+                const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
 
-                if (index > list_end || index < 0) {
+                if (index > list_length || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
                         destroy_double_linked_list(list);
                         exit(EXIT_FAILURE);
@@ -210,7 +212,8 @@ void insert_obj_at(double_linked_list *list, struct object object, int index)
 void *get_obj_at(double_linked_list *list, int index)
 {
         if (!is_empty(list)) {
-                const size_t list_end = list->length - 1;
+                const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
                 const int list_type = list->type;
 
                 if (index > list_end || index < 0) {
@@ -236,7 +239,8 @@ void *get_obj_at(double_linked_list *list, int index)
 void remove_obj_at(double_linked_list *list, int index)
 {
         if (!is_empty(list)) {
-                const size_t list_end = list->length - 1;
+                const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
 
                 if (index > list_end || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
