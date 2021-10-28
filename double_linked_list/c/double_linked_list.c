@@ -141,7 +141,7 @@ void remove_first(double_linked_list *list)
                         list->head = NULL;
                         list->tail = NULL;
                 } else {
-                        list->head = list->head->next;
+                        list->head = head->next;
                         list->head->prev = NULL;
                 }
 
@@ -159,7 +159,7 @@ void remove_last(double_linked_list *list)
                         list->head = NULL;
                         list->tail = NULL;
                 } else {
-                        list->tail = list->tail->prev;
+                        list->tail = tail->prev;
                         list->tail->next = NULL;
                 }
 
@@ -227,8 +227,7 @@ void *get_obj_at(double_linked_list *list, int index)
                 if (index == 0)
                         return get_object(&node->value, list_type);
 
-                for (int i = 0; i < index; i++)
-                        node = node->next;
+                node = get_node(list, index);
 
                 return get_object(&node->value, list_type);
         }
