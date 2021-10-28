@@ -256,13 +256,21 @@ void remove_obj_at(linked_list *list, int index)
         }
 }
 
-void show_list(linked_list *list, void (*to_string)(struct object object))
+void show_list(linked_list *list, void (*to_string)(struct object object), bool reverse)
 {
         if (!is_empty(list)) {
                 const size_t list_length = list->length;
 
-                for (int i = 0; i < list_length; i++)
-                        to_string(*(struct object *) get_obj_at(list, i));
+                int start = reverse ? list_length : 0;
+                int end = reverse ? 0 : list_length;
+
+                if (reverse) {
+                        for (int i = start - 1; i >= end; i--)
+                                to_string(*(struct object *) get_obj_at(list, i));
+                } else {
+                        for (int i = start; i < end; i++)
+                                to_string(*(struct object *) get_obj_at(list, i));
+                }
         }
 }
 

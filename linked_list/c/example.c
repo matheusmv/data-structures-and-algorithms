@@ -25,20 +25,20 @@ int main(int argc, char *argv[])
         insert_last(student_list, (struct object) { ._student = students[3] });
         insert_last(student_list, (struct object) { ._student = students[2] });
 
-        show_list(student_list, show_students);
-        show_list(student_list, show_students_with_grades);
+        show_list(student_list, show_students, IN_ORDER);
+        show_list(student_list, show_students_with_grades, REVERSE);
 
         const int student_arr_len = sizeof(students) / sizeof(struct student);
 
         for (int i = 0; i < student_arr_len; i++)
                 insert_first(student_list, (struct object) { ._student = students[i] });
 
-        show_list(student_list, show_students);
+        show_list(student_list, show_students, IN_ORDER);
 
         remove_first(student_list);
         remove_first(student_list);
 
-        show_list(student_list, show_students);
+        show_list(student_list, show_students, IN_ORDER);
 
         struct student result = *(struct student *) get_obj_at(student_list, 2);
 
@@ -48,13 +48,13 @@ int main(int argc, char *argv[])
 
         remove_obj_at(student_list, 2);
 
-        show_list(student_list, show_students);
+        show_list(student_list, show_students, IN_ORDER);
 
         remove_last(student_list);
         remove_last(student_list);
 
-        show_list(student_list, show_students);
-        show_list(student_list, show_students_with_grades);
+        show_list(student_list, show_students, IN_ORDER);
+        show_list(student_list, show_students_with_grades, IN_ORDER);
 
         destroy_linked_list(student_list);
 

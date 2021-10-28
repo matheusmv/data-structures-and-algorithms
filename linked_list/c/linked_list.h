@@ -11,6 +11,9 @@
 
 #define GETSTDERROR() (strerror(errno))
 
+#define IN_ORDER false
+#define REVERSE true
+
 typedef struct __linked_list linked_list;
 
 linked_list *new_linked_list(int type);
@@ -23,7 +26,7 @@ void remove_last(linked_list *list);
 void insert_obj_at(linked_list *list, struct object object, int index);
 void *get_obj_at(linked_list *list, int index);
 void remove_obj_at(linked_list *list, int index);
-void show_list(linked_list *list, void (*to_string)(struct object object));
+void show_list(linked_list *list, void (*to_string)(struct object object), bool reverse);
 void destroy_linked_list(linked_list *list);
 
 #endif
