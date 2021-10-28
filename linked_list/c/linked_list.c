@@ -58,8 +58,10 @@ void insert_first(linked_list *list, struct object object)
                 node *new_node = malloc(sizeof(node));
 
                 if (new_node != NULL) {
+                        node *head = list->head;
+
                         *new_node = (node) {
-                                .next = list->head,
+                                .next = head,
                                 .value = object,
                         };
 
@@ -74,7 +76,7 @@ void remove_first(linked_list *list)
 {
         if (!is_empty(list)) {
                 node *head = list->head;
-                list->head = list->head->next;
+                list->head = head->next;
                 decrease_list_length(list);
                 free(head);
         }
@@ -82,10 +84,10 @@ void remove_first(linked_list *list)
 
 void insert_obj_at(linked_list *list, struct object object, int index)
 {
-        if (!is_empty(list)) {
-                const size_t list_end = list->length - 1;
+        if (list != NULL) {
+                const size_t list_length = list->length;
 
-                if (index > list_end || index < 0) {
+                if (index > list_length || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
                         destroy_linked_list(list);
                         exit(EXIT_FAILURE);
@@ -121,7 +123,8 @@ void insert_obj_at(linked_list *list, struct object object, int index)
 void *get_obj_at(linked_list *list, int index)
 {
         if (!is_empty(list)) {
-                const size_t list_end = list->length - 1;
+                const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
                 const int list_type = list->type;
 
                 if (index > list_end || index < 0) {
@@ -147,7 +150,8 @@ void *get_obj_at(linked_list *list, int index)
 void remove_obj_at(linked_list *list, int index)
 {
         if (!is_empty(list)) {
-                const size_t list_end = list->length - 1;
+                const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
 
                 if (index > list_end || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
@@ -167,6 +171,7 @@ void remove_obj_at(linked_list *list, int index)
                         }
 
                         previous->next = current->next;
+
                         free(current);
                         decrease_list_length(list);
                 }
@@ -177,11 +182,13 @@ void destroy_linked_list(linked_list *list)
 {
         if (list != NULL) {
                 node *node;
+
                 while (!is_empty(list)) {
                         node = list->head;
-                        list->head = list->head->next;
+                        list->head = node->next;
                         free(node);
                 }
+
                 free(list);
         }
 }
