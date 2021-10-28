@@ -198,7 +198,6 @@ void insert_obj_at(double_linked_list *list, struct object object, int index)
                                 previous->next = new_node;
                                 current->prev = new_node;
 
-
                                 if (list->tail == NULL)
                                         list->tail = new_node;
 
@@ -267,11 +266,13 @@ void destroy_double_linked_list(double_linked_list *list)
 {
         if (list != NULL) {
                 node *node;
+
                 while (!is_empty(list)) {
                         node = list->head;
                         list->head = node->next;
                         free(node);
                 }
+
                 free(list);
         }
 }
