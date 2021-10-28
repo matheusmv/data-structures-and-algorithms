@@ -222,12 +222,7 @@ void *get_obj_at(double_linked_list *list, int index)
                         exit(EXIT_FAILURE);
                 }
 
-                node *node = list->head;
-
-                if (index == 0)
-                        return get_object(&node->value, list_type);
-
-                node = get_node(list, index);
+                node *node = get_node(list, index);
 
                 return get_object(&node->value, list_type);
         }
