@@ -20,6 +20,10 @@ int main(int argc, char *argv[])
         if (student_list == NULL)
                 return EXIT_FAILURE;
 
+        insert_last(student_list, (struct object) { ._student = students[4] });
+        insert_last(student_list, (struct object) { ._student = students[3] });
+        insert_last(student_list, (struct object) { ._student = students[2] });
+
         show_students(student_list);
 
         const int student_arr_len = sizeof(students) / sizeof(struct student);
@@ -30,7 +34,6 @@ int main(int argc, char *argv[])
         show_students(student_list);
 
         remove_first(student_list);
-
         remove_first(student_list);
 
         show_students(student_list);
@@ -42,6 +45,11 @@ int main(int argc, char *argv[])
         insert_obj_at(student_list, (struct object) { ._student = students[4] }, 1);
 
         remove_obj_at(student_list, 2);
+
+        show_students(student_list);
+
+        remove_last(student_list);
+        remove_last(student_list);
 
         show_students(student_list);
 

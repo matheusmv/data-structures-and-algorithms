@@ -9,6 +9,7 @@ typedef struct __linked_list {
         int type;
         size_t length;
         struct __node *head;
+        struct __node *tail;
 } linked_list;
 
 static void increase_list_length(linked_list *list)
@@ -24,6 +25,29 @@ static void decrease_list_length(linked_list *list)
                 list->length -= 1;
 }
 
+static node *get_node(linked_list *list, int index)
+{
+        if (!is_empty(list)) {
+                const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
+
+                if (index > list_end || index < 0) {
+                        fprintf(stderr, "***index [%d] out of bounds***\n", index);
+                        destroy_linked_list(list);
+                        exit(EXIT_FAILURE);
+                }
+
+                node *node = list->head;
+
+                for (int i = 0; i < index; i++)
+                        node = node->next;
+
+                return node;
+        }
+
+        return NULL;
+}
+
 linked_list *new_linked_list(int type)
 {
         linked_list *list = malloc(sizeof(linked_list));
@@ -37,6 +61,7 @@ linked_list *new_linked_list(int type)
                 .type = list_type,
                 .length = 0,
                 .head = NULL,
+                .tail = NULL,
         };
 
         return list;
@@ -65,7 +90,36 @@ void insert_first(linked_list *list, struct object object)
                                 .value = object,
                         };
 
+                        if (list->tail == NULL)
+                                list->tail = new_node;
+
                         list->head = new_node;
+
+                        increase_list_length(list);
+                }
+        }
+}
+
+void insert_last(linked_list *list, struct object object)
+{
+        if (list != NULL) {
+                node *new_node = malloc(sizeof(node));
+
+                if (new_node != NULL) {
+                        node *tail = list->tail;
+
+                        if (!is_empty(list))
+                                tail->next = new_node;
+
+                        *new_node = (node) {
+                                .next = NULL,
+                                .value = object,
+                        };
+
+                        if (list->head == NULL)
+                                list->head = new_node;
+
+                        list->tail = new_node;
 
                         increase_list_length(list);
                 }
@@ -76,9 +130,41 @@ void remove_first(linked_list *list)
 {
         if (!is_empty(list)) {
                 node *head = list->head;
-                list->head = head->next;
+
+                if (get_length(list) == 1) {
+                        list->head = NULL;
+                        list->tail = NULL;
+                } else {
+                        list->head = head->next;
+                }
+
                 decrease_list_length(list);
                 free(head);
+        }
+}
+
+void remove_last(linked_list *list)
+{
+        if (!is_empty(list)) {
+                const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
+
+                node *tail = NULL;
+
+                if (get_length(list) == 1) {
+                        tail = list->head;
+
+                        list->head = NULL;
+                        list->tail = NULL;
+                } else {
+                        node *previous = get_node(list, list_end - 1);
+
+                        tail = previous->next;
+                        previous->next = NULL;
+                }
+
+                decrease_list_length(list);
+                free(tail);
         }
 }
 
@@ -86,6 +172,7 @@ void insert_obj_at(linked_list *list, struct object object, int index)
 {
         if (list != NULL) {
                 const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
 
                 if (index > list_length || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
@@ -95,14 +182,11 @@ void insert_obj_at(linked_list *list, struct object object, int index)
 
                 if (index == 0) {
                         insert_first(list, object);
+                } else if (index == list_end) {
+                        insert_last(list, object);
                 } else {
-                        node *current = list->head;
-                        node *previous = NULL;
-
-                        for (int i = 0; i < index; i++) {
-                                previous = current;
-                                current = current->next;
-                        }
+                        node *previous = get_node(list, index - 1);
+                        node *current = previous->next;
 
                         node *new_node = malloc(sizeof(node));
 
@@ -113,6 +197,9 @@ void insert_obj_at(linked_list *list, struct object object, int index)
                                 };
 
                                 previous->next = new_node;
+
+                                if (list->tail == NULL)
+                                        list->tail = new_node;
 
                                 increase_list_length(list);
                         }
@@ -133,13 +220,7 @@ void *get_obj_at(linked_list *list, int index)
                         exit(EXIT_FAILURE);
                 }
 
-                node *node = list->head;
-
-                if (index == 0)
-                        return get_object(&node->value, list_type);
-
-                for (int i = 0; i < index; i++)
-                        node = node->next;
+                node *node = get_node(list, index);
 
                 return get_object(&node->value, list_type);
         }
@@ -161,14 +242,11 @@ void remove_obj_at(linked_list *list, int index)
 
                 if (index == 0) {
                         remove_first(list);
+                } else if (index == list_end) {
+                        remove_last(list);
                 } else {
-                        node *current = list->head;
-                        node *previous = NULL;
-
-                        for (int i = 0; i < index; i++) {
-                                previous = current;
-                                current = current->next;
-                        }
+                        node *previous = get_node(list, index - 1);
+                        node *current = previous->next;
 
                         previous->next = current->next;
 
