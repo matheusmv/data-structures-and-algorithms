@@ -285,6 +285,12 @@ void destroy_linked_list(linked_list *list)
                         free(node);
                 }
 
+                list->type = -1;
+                list->length = -1;
+                list->head = NULL;
+                list->tail = NULL;
+
                 free(list);
+                list = NULL;
         }
 }
