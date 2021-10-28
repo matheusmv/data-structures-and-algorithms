@@ -256,6 +256,16 @@ void remove_obj_at(linked_list *list, int index)
         }
 }
 
+void show_list(linked_list *list, void (*to_string)(struct object object))
+{
+        if (!is_empty(list)) {
+                const size_t list_length = list->length;
+
+                for (int i = 0; i < list_length; i++)
+                        to_string(*(struct object *) get_obj_at(list, i));
+        }
+}
+
 void destroy_linked_list(linked_list *list)
 {
         if (list != NULL) {

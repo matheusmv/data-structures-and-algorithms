@@ -11,7 +11,8 @@ struct student students[] = {
         {.id = 5, .name = "student 5", .n1 = 8.2f, .n2 = 7.9f, .n3 = 7.7f},
 };
 
-void show_students(linked_list *);
+void show_students(struct object);
+void show_students_with_grades(struct object);
 
 int main(int argc, char *argv[])
 {
@@ -24,19 +25,20 @@ int main(int argc, char *argv[])
         insert_last(student_list, (struct object) { ._student = students[3] });
         insert_last(student_list, (struct object) { ._student = students[2] });
 
-        show_students(student_list);
+        show_list(student_list, show_students);
+        show_list(student_list, show_students_with_grades);
 
         const int student_arr_len = sizeof(students) / sizeof(struct student);
 
         for (int i = 0; i < student_arr_len; i++)
                 insert_first(student_list, (struct object) { ._student = students[i] });
 
-        show_students(student_list);
+        show_list(student_list, show_students);
 
         remove_first(student_list);
         remove_first(student_list);
 
-        show_students(student_list);
+        show_list(student_list, show_students);
 
         struct student result = *(struct student *) get_obj_at(student_list, 2);
 
@@ -46,37 +48,31 @@ int main(int argc, char *argv[])
 
         remove_obj_at(student_list, 2);
 
-        show_students(student_list);
+        show_list(student_list, show_students);
 
         remove_last(student_list);
         remove_last(student_list);
 
-        show_students(student_list);
+        show_list(student_list, show_students);
+        show_list(student_list, show_students_with_grades);
 
         destroy_linked_list(student_list);
 
         return EXIT_SUCCESS;
 }
 
-void show_students(linked_list *list)
+void show_students(struct object obj)
 {
-        const size_t list_len = get_length(list);
+        struct student result = obj._student;
 
-        printf("length: %ld\n", list_len);
+        printf("\t%d - %s\n", result.id, result.name);
+}
 
-        if (list_len == 0) {
-                printf("***empty***\n");
-        } else {
-                struct student result;
+void show_students_with_grades(struct object obj)
+{
+        struct student result = obj._student;
 
-                for (int i = 0; i < list_len; i++) {
-                        result = *(struct student *) get_obj_at(list, i);
-
-                        printf("\t%d - %s - %.2f - %.2f - %.2f\n",
-                               result.id, result.name,
-                               result.n1, result.n2, result.n3);
-                }
-
-                printf("\n");
-        }
+        printf("\t%d - %s - %.2f - %.2f - %.2f\n",
+               result.id, result.name,
+               result.n1, result.n2, result.n3);
 }
