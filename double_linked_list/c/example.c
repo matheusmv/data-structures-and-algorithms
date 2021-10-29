@@ -34,9 +34,10 @@ int main(int argc, char *argv[])
 
         show_list(student_list, show_students_with_grades, IN_ORDER);
 
-        struct student result = *(struct student *) get_obj_at(student_list, 2);
+        struct student *result = get_obj_at(student_list, 2);
 
-        printf("%d - %s\n", result.id, result.name);
+        if (result != NULL)
+                printf("%d - %s\n", result->id, result->name);
 
         insert_obj_at(student_list, (struct object) { ._student = students[4] }, 0);
         insert_obj_at(student_list, (struct object) { ._student = students[4] }, 2);
