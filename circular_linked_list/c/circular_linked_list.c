@@ -9,6 +9,7 @@ typedef struct __circular_linked_list {
         int type;
         size_t length;
         struct __node *head;
+        struct __node *tail;
 } circular_linked_list;
 
 static void increase_list_length(circular_linked_list *list)
@@ -60,6 +61,7 @@ circular_linked_list *new_circular_linked_list(int type)
                 .type = list_type,
                 .length = 0,
                 .head = NULL,
+                .tail = NULL,
         };
 
         return list;
@@ -75,41 +77,72 @@ bool is_empty(circular_linked_list *list)
         return list->head == NULL;
 }
 
-void insert_obj(circular_linked_list *list, struct object object)
+void insert_first(circular_linked_list *list, struct object object)
 {
         if (list != NULL) {
                 node *new_node = malloc(sizeof(node));
 
                 if (new_node != NULL) {
-                        node *head = list->head;
-
                         *new_node = (node) {
-                                .next = head,
                                 .value = object,
                         };
 
-                        list->head = new_node;
+                        node *head = list->head;
+                        node *tail = list->tail;
+
+                        if (is_empty(list)) {
+                                new_node->next = new_node;
+                                list->head = new_node;
+                                list->tail = list->head;
+                        } else {
+                                new_node->next = head;
+                                tail->next = new_node;
+                                list->head = new_node;
+                        }
 
                         increase_list_length(list);
                 }
         }
 }
 
-void remove_obj(circular_linked_list *list)
+void insert_last(circular_linked_list *list, struct object object)
+{
+        if (list != NULL) {
+                node *new_node = malloc(sizeof(node));
+
+                if (new_node != NULL) {
+                        *new_node = (node) {
+                                .value = object,
+                        };
+
+                        node *tail = list->tail;
+
+                        if (is_empty(list)) {
+                                new_node->next = new_node;
+                                list->head = new_node;
+                                list->tail = list->head;
+                        } else {
+                                new_node->next = tail;
+                                tail->next = new_node;
+                                list->tail = new_node;
+                        }
+
+                        increase_list_length(list);
+                }
+        }
+}
+
+void remove_first(circular_linked_list *list)
 {
         if (!is_empty(list)) {
-                const size_t list_length = list->length;
-                const size_t list_end = list_length - 1;
-
-                node *head = NULL;
+                node *head = list->head;
 
                 if (get_length(list) == 1) {
-                        head = list->head;
                         list->head = NULL;
+                        list->tail = NULL;
                 } else {
-                        node *previous = get_node(list, list_end - 1);
-                        head = previous->next;
-                        previous->next = head->next;
+                        list->head = head->next;
+                        list->tail->next = list->head;
                 }
 
                 decrease_list_length(list);
@@ -117,10 +150,34 @@ void remove_obj(circular_linked_list *list)
         }
 }
 
+void remove_last(circular_linked_list *list)
+{
+        if (!is_empty(list)) {
+                const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
+
+                node *tail = list->tail;
+
+                if (list_length == 1) {
+                        list->head = NULL;
+                        list->tail = NULL;
+                } else {
+                        node *previous = get_node(list, list_end - 1);
+
+                        previous->next = list->head;
+                        list->tail = previous;
+                }
+
+                decrease_list_length(list);
+                free(tail);
+        }
+}
+
 void insert_obj_at(circular_linked_list *list, struct object object, int index)
 {
         if (list != NULL) {
                 const size_t list_length = list->length;
+                const size_t list_end = list_length - 1;
 
                 if (index > list_length || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
@@ -129,7 +186,9 @@ void insert_obj_at(circular_linked_list *list, struct object object, int index)
                 }
 
                 if (index == 0) {
-                        insert_obj(list, object);
+                        insert_first(list, object);
+                } else if (index == list_end) {
+                        insert_last(list, object);
                 } else {
                         node *previous = get_node(list, index - 1);
                         node *current = previous->next;
@@ -184,7 +243,9 @@ void remove_obj_at(circular_linked_list *list, int index)
                 }
 
                 if (index == 0) {
-                        remove_obj(list);
+                        remove_first(list);
+                } else if (index == list_end) {
+                        remove_last(list);
                 } else {
                         node *previous = get_node(list, index - 1);
                         node *current = previous->next;
@@ -231,6 +292,7 @@ void destroy_circular_linked_list(circular_linked_list *list)
                 list->type = -1;
                 list->length = -1;
                 list->head = NULL;
+                list->tail = NULL;
 
                 free(list);
                 list = NULL;

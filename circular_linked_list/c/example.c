@@ -25,19 +25,22 @@ int main(int argc, char *argv[])
         const int student_arr_len = sizeof(students) / sizeof(struct student);
 
         for (int i = 0; i < student_arr_len; i++)
-                insert_obj(student_list, (struct object) { ._student = students[i] });
+                insert_last(student_list, (struct object) { ._student = students[i] });
 
         show_list(student_list, show_students, IN_ORDER);
         show_list(student_list, show_students, REVERSE);
 
-        remove_obj(student_list);
-        remove_obj(student_list);
+        remove_last(student_list);
+        remove_first(student_list);
 
         show_list(student_list, show_students_with_grades, IN_ORDER);
 
-        struct student result = *(struct student *) get_obj_at(student_list, 2);
+        struct student *result = get_obj_at(student_list, 1);
 
-        printf("%d - %s\n", result.id, result.name);
+        if (result != NULL)
+                printf("%d - %s\n", result->id, result->name);
+
+        show_list(student_list, show_students_with_grades, IN_ORDER);
 
         insert_obj_at(student_list, (struct object) { ._student = students[4] }, 0);
         insert_obj_at(student_list, (struct object) { ._student = students[4] }, 2);
@@ -45,8 +48,8 @@ int main(int argc, char *argv[])
 
         show_list(student_list, show_students_with_grades, IN_ORDER);
 
-        remove_obj(student_list);
-        remove_obj(student_list);
+        remove_first(student_list);
+        remove_first(student_list);
 
         show_list(student_list, show_students_with_grades, IN_ORDER);
 
@@ -55,8 +58,8 @@ int main(int argc, char *argv[])
 
         show_list(student_list, show_students_with_grades, IN_ORDER);
 
-        insert_obj(student_list, (struct object) { ._student = students[0] });
-        insert_obj(student_list, (struct object) { ._student = students[0] });
+        insert_first(student_list, (struct object) { ._student = students[0] });
+        insert_first(student_list, (struct object) { ._student = students[0] });
 
         show_list(student_list, show_students_with_grades, IN_ORDER);
 
@@ -66,11 +69,11 @@ int main(int argc, char *argv[])
 
         student_list = new_circular_linked_list(INT_TYPE);
 
-        insert_obj(student_list, (struct object) { ._int = 2 });
-        insert_obj(student_list, (struct object) { ._int = 4 });
-        insert_obj(student_list, (struct object) { ._int = 6 });
-        insert_obj(student_list, (struct object) { ._int = 8 });
-        insert_obj(student_list, (struct object) { ._int = 10 });
+        insert_first(student_list, (struct object) { ._int = 2 });
+        insert_first(student_list, (struct object) { ._int = 4 });
+        insert_first(student_list, (struct object) { ._int = 6 });
+        insert_first(student_list, (struct object) { ._int = 8 });
+        insert_first(student_list, (struct object) { ._int = 10 });
 
         show_list(student_list, show_numbers, IN_ORDER);
         show_list(student_list, show_numbers, REVERSE);
