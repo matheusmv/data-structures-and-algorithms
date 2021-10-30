@@ -2,6 +2,7 @@
 
 typedef struct __node {
         struct object value;
+        struct __node *prev;
         struct __node *next;
 } node;
 
@@ -91,11 +92,14 @@ void insert_first(circular_linked_list *list, struct object object)
                         node *tail = list->tail;
 
                         if (is_empty(list)) {
+                                new_node->prev = new_node;
                                 new_node->next = new_node;
                                 list->head = new_node;
                                 list->tail = list->head;
                         } else {
+                                new_node->prev = tail;
                                 new_node->next = head;
+                                head->prev = new_node;
                                 tail->next = new_node;
                                 list->head = new_node;
                         }
@@ -115,14 +119,18 @@ void insert_last(circular_linked_list *list, struct object object)
                                 .value = object,
                         };
 
+                        node *head = list->head;
                         node *tail = list->tail;
 
                         if (is_empty(list)) {
                                 new_node->next = new_node;
-                                list->head = new_node;
-                                list->tail = list->head;
+                                new_node->prev = new_node;
+                                list->tail = new_node;
+                                list->head = list->tail;
                         } else {
-                                new_node->next = tail;
+                                new_node->prev = tail;
+                                new_node->next = head;
+                                head->prev = new_node;
                                 tail->next = new_node;
                                 list->tail = new_node;
                         }
@@ -142,6 +150,7 @@ void remove_first(circular_linked_list *list)
                         list->tail = NULL;
                 } else {
                         list->head = head->next;
+                        list->head->prev = list->tail;
                         list->tail->next = list->head;
                 }
 
@@ -153,19 +162,15 @@ void remove_first(circular_linked_list *list)
 void remove_last(circular_linked_list *list)
 {
         if (!is_empty(list)) {
-                const size_t list_length = list->length;
-                const size_t list_end = list_length - 1;
-
                 node *tail = list->tail;
 
-                if (list_length == 1) {
+                if (get_length(list) == 1) {
                         list->head = NULL;
                         list->tail = NULL;
                 } else {
-                        node *previous = get_node(list, list_end - 1);
-
-                        previous->next = list->head;
-                        list->tail = previous;
+                        list->tail = tail->prev;
+                        list->tail->next = list->head;
+                        list->head->prev = list->tail;
                 }
 
                 decrease_list_length(list);
@@ -190,18 +195,20 @@ void insert_obj_at(circular_linked_list *list, struct object object, int index)
                 } else if (index == list_end) {
                         insert_last(list, object);
                 } else {
-                        node *previous = get_node(list, index - 1);
-                        node *current = previous->next;
+                        node *current = get_node(list, index);
+                        node *previous = current->prev;
 
                         node *new_node = malloc(sizeof(node));
 
                         if (new_node != NULL) {
                                 *new_node = (node) {
+                                        .prev = previous,
                                         .next = current,
                                         .value = object,
                                 };
 
                                 previous->next = new_node;
+                                current->prev = new_node;
 
                                 increase_list_length(list);
                         }
@@ -247,11 +254,12 @@ void remove_obj_at(circular_linked_list *list, int index)
                 } else if (index == list_end) {
                         remove_last(list);
                 } else {
-                        node *previous = get_node(list, index - 1);
-                        node *current = previous->next;
+                        node *current = get_node(list, index);
+                        node *previous = current->prev;
                         node *next = current->next;
 
                         previous->next = next;
+                        next->prev = previous;
 
                         free(current);
                         decrease_list_length(list);
@@ -280,14 +288,8 @@ void show_list(circular_linked_list *list, void (*to_string)(struct object objec
 void destroy_circular_linked_list(circular_linked_list *list)
 {
         if (list != NULL) {
-                node *node;
-
-                while (!is_empty(list) && get_length(list) > 0) {
-                        node = list->head;
-                        list->head = node->next;
-                        free(node);
-                        decrease_list_length(list);
-                }
+                while (!is_empty(list))
+                        remove_first(list);
 
                 list->type = -1;
                 list->length = -1;
