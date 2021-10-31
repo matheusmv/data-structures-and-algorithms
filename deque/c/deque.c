@@ -189,11 +189,11 @@ void show_deque(deque *deque, void (*to_string)(struct object object), bool reve
                                 to_string(node->value);
                                 node = node->prev;
                         }
-                }
-
-                while (node != NULL) {
-                        to_string(node->value);
-                        node = node->next;
+                } else {
+                        while (node != NULL) {
+                                to_string(node->value);
+                                node = node->next;
+                        }
                 }
         }
 }
