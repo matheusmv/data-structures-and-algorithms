@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         result = search_obj(student_tree, to_find, equals, is_bigger_than);
 
         if (result.is_present) {
-                printf("*** \tremoved: ");
+                printf("*** \tfound: ");
                 show_students(result.object);
         }
 
