@@ -6,18 +6,18 @@ struct map {
 };
 
 static struct map lookup_table[] = {
-    {CHAR_TYPE, sizeof(char *)},
-    {INT_TYPE, sizeof(int *)},
-    {LONG_TYPE, sizeof(long *)},
-    {FLOAT_TYPE, sizeof(float *)},
-    {DOUBLE_TYPE, sizeof(double *)},
-    {STUDENT_TYPE, sizeof(struct student *)},
+    {CHAR_TYPE, sizeof(char)},
+    {INT_TYPE, sizeof(int)},
+    {LONG_TYPE, sizeof(long)},
+    {FLOAT_TYPE, sizeof(float)},
+    {DOUBLE_TYPE, sizeof(double)},
+    {STUDENT_TYPE, sizeof(struct student)},
 };
 
-int get_object_type(int key)
-{
-        const size_t NKEYS = (sizeof(lookup_table) / sizeof(struct map)) - 1;
+#define NKEYS (sizeof(lookup_table) / sizeof(struct map)) - 1
 
+obj_type get_object_type(obj_type key)
+{
         if (key < 0 || key > NKEYS) {
                 fprintf(stderr, "get_type_type() failed. Invalid key\n");
                 exit(EXIT_FAILURE);
@@ -26,10 +26,8 @@ int get_object_type(int key)
         return lookup_table[key].key;
 }
 
-size_t get_object_size(int key)
+size_t get_object_size(obj_type key)
 {
-        const size_t NKEYS = (sizeof(lookup_table) / sizeof(struct map)) - 1;
-
         if (key < 0 || key > NKEYS) {
                 fprintf(stderr, "get_type_size() failed. Invalid key\n");
                 exit(EXIT_FAILURE);
@@ -38,9 +36,11 @@ size_t get_object_size(int key)
         return lookup_table[key].value;
 }
 
-struct result get_object(struct object *obj, int type)
+result get_object(object *object, obj_type type)
 {
-        struct result result;
+        result result = (struct result) {
+                .is_present = false,
+        };
 
         switch (type) {
         case CHAR_TYPE:
@@ -51,15 +51,11 @@ struct result get_object(struct object *obj, int type)
         case STUDENT_TYPE:
                 result = (struct result) {
                         .is_present = true,
-                        .object = *obj
+                        .object = *object,
                 };
 
                 return result;
         default:
-                result = (struct result) {
-                        .is_present = false,
-                };
-
                 return result;
         }
 }

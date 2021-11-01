@@ -15,16 +15,16 @@ struct student {
 
 /* data type mapper */
 
-enum array_types {
+typedef enum array_types {
         CHAR_TYPE,
         INT_TYPE,
         LONG_TYPE,
         FLOAT_TYPE,
         DOUBLE_TYPE,
         STUDENT_TYPE,
-};
+} obj_type;
 
-struct object {
+typedef struct object {
         union {
                 char _char;
                 int _int;
@@ -33,15 +33,15 @@ struct object {
                 double _double;
                 struct student _student;
         };
-};
+} object;
 
-struct result {
+typedef struct result {
         bool is_present;
         struct object object;
-};
+} result;
 
-int get_object_type(int key);
-size_t get_object_size(int key);
-struct result get_object(struct object *object, int type);
+obj_type get_object_type(obj_type key);
+size_t get_object_size(obj_type key);
+result get_object(object *object, obj_type type);
 
 #endif
