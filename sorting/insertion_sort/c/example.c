@@ -1,3 +1,6 @@
+/**
+ * gcc data_types.c insertion_sort.c example.c -o program
+ */
 #include "insertion_sort.h"
 
 #include <stdio.h>
