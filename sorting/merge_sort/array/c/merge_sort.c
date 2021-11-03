@@ -18,7 +18,7 @@ static void merge(object *array, size_t start, size_t mid, size_t end, compare_o
 
                 for (int i = 0; i < arr_len; i++) {
                         if (!end_of_first_half && !end_of_second_half) {
-                                if (comparator(array[first_half], array[second_half]) < 0) {
+                                if (comparator(array[first_half], array[second_half]) <= 0) {
                                         aux_arr[i] = array[first_half];
                                         first_half += 1;
                                 } else {
