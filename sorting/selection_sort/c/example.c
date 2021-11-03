@@ -1,3 +1,6 @@
+/**
+ * gcc data_types.c selection_sort.c example.c -o program
+ */
 #include "selection_sort.h"
 
 #include <stdio.h>
