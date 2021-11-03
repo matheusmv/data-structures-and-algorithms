@@ -1,3 +1,6 @@
+/**
+ * gcc data_types.c merge_sort.c example.c -o program
+ */
 #include "merge_sort.h"
 
 #include <stdio.h>
