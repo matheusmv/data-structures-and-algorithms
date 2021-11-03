@@ -1,3 +1,6 @@
+/**
+ * gcc data_types.c bubble_sort.c example.c -o program
+ */
 #include "bubble_sort.h"
 
 #include <stdio.h>
