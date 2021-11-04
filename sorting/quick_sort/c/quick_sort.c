@@ -12,7 +12,7 @@ static void swapp(object *a, object *b)
         *b = aux;
 }
 
-static int64_t split_array(object *array, int64_t start, int64_t end, compare_obj_fn comparator)
+static int64_t partition(object *array, int64_t start, int64_t end, compare_obj_fn comparator)
 {
         object pivot = array[start];
 
@@ -39,7 +39,7 @@ static void quick_sort(object *array, int64_t start, int64_t end, compare_obj_fn
         if (start >= end)
                 return;
 
-        int64_t pivot = split_array(array, start, end, comparator);
+        int64_t pivot = partition(array, start, end, comparator);
 
         quick_sort(array, start, pivot - 1, comparator);
         quick_sort(array, pivot + 1, end, comparator);
