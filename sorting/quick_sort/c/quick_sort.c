@@ -20,9 +20,9 @@ static int64_t partition(object *array, int64_t start, int64_t end, compare_obj_
         int64_t arr_right = end;
 
         while (arr_left < arr_right) {
-                while (comparator(array[arr_left], pivot) <= 0)
+                while (arr_left <= end && comparator(array[arr_left], pivot) <= 0)
                         arr_left += 1;
-                while (comparator(array[arr_right], pivot) > 0)
+                while (arr_right >= 0 && comparator(array[arr_right], pivot) > 0)
                         arr_right -= 1;
                 if (arr_left < arr_right)
                         swapp(&array[arr_left], &array[arr_right]);
