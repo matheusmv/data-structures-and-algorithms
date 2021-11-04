@@ -1,0 +1,57 @@
+#include "quick_sort.h"
+
+static bool is_empty(object *array)
+{
+        return array == NULL;
+}
+
+static void swapp(object *a, object *b)
+{
+        object aux = *a;
+        *a = *b;
+        *b = aux;
+}
+
+static int64_t split_array(object *array, int64_t start, int64_t end, compare_obj_fn comparator)
+{
+        object pivot = array[start];
+
+        int64_t arr_left = start;
+        int64_t arr_right = end;
+
+        while (arr_left < arr_right) {
+                while (comparator(array[arr_left], pivot) <= 0)
+                        arr_left += 1;
+                while (comparator(array[arr_right], pivot) > 0)
+                        arr_right -= 1;
+                if (arr_left < arr_right)
+                        swapp(&array[arr_left], &array[arr_right]);
+        }
+
+        array[start] = array[arr_right];
+        array[arr_right] = pivot;
+
+        return arr_right;
+}
+
+static void quick_sort(object *array, int64_t start, int64_t end, compare_obj_fn comparator)
+{
+        if (start >= end)
+                return;
+
+        int64_t pivot = split_array(array, start, end, comparator);
+
+        quick_sort(array, start, pivot - 1, comparator);
+        quick_sort(array, pivot + 1, end, comparator);
+}
+
+void q_sort(object *array, size_t arr_length, compare_obj_fn comparator)
+{
+        if (is_empty(array))
+                return;
+
+        int64_t start = 0;
+        int64_t end = arr_length - 1;
+
+        quick_sort(array, start, end, comparator);
+}
