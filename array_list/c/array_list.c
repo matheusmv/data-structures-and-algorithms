@@ -2,7 +2,7 @@
 
 typedef struct __array_list {
         struct object *array;
-        int type;
+        obj_type type;
         size_t size;
         size_t length;
 } array_list;
@@ -48,17 +48,16 @@ static void increase_array_size(array_list *arr_list)
         arr_list->size = new_arr_size;
 }
 
-array_list *new_array_list(size_t arr_size, int type)
+array_list *new_array_list(size_t arr_size, obj_type type)
 {
-        const int arr_type = get_object_type(type);
-        const size_t obj_size = sizeof(struct object);
-
         array_list *arr_list = malloc(sizeof(array_list));
 
         if (arr_list == NULL)
                 return NULL;
 
-        struct object *new_array = malloc(arr_size * obj_size);
+        const size_t obj_size = sizeof(struct object);
+
+        object *new_array = malloc(arr_size * obj_size);
 
         if (new_array == NULL) {
                 free(arr_list);
@@ -66,6 +65,8 @@ array_list *new_array_list(size_t arr_size, int type)
         }
 
         memset(new_array, 0, sizeof(*new_array));
+
+        const obj_type arr_type = get_object_type(type);
 
         *arr_list = (array_list) {
                 .array = new_array,
@@ -87,7 +88,7 @@ size_t get_length(array_list *arr_list)
         return arr_list->length;
 }
 
-void append_obj(array_list *arr_list, struct object object)
+void append_obj(array_list *arr_list, object object)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_size = arr_list->size - 1;
@@ -100,19 +101,26 @@ void append_obj(array_list *arr_list, struct object object)
         increase_array_length(arr_list);
 }
 
-void remove_obj(array_list *arr_list)
+result remove_obj(array_list *arr_list)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_end = arr_length - 1;
         const size_t obj_size = sizeof(struct object);
+        const obj_type type = arr_list->type;
 
         if (arr_length > 0) {
+                result obj = get_object(&arr_list->array[arr_end], type);
+
                 memset(&arr_list->array[arr_end], 0, obj_size);
                 decrease_array_length(arr_list);
+
+                return obj;
         }
+
+        return (struct result) { .is_present = false };
 }
 
-void add_obj_at(array_list *arr_list, struct object object, int index)
+void add_obj_at(array_list *arr_list, object object, int index)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_end = arr_length - 1;
@@ -136,9 +144,11 @@ void add_obj_at(array_list *arr_list, struct object object, int index)
         increase_array_length(arr_list);
 }
 
-void *get_obj_at(array_list *arr_list, int index)
+result get_obj_at(array_list *arr_list, int index)
 {
-        const size_t arr_end = arr_list->length - 1;
+        const size_t arr_length = arr_list->length;
+        const size_t arr_end = arr_length - 1;
+        const obj_type type = arr_list->type;
 
         if (index > arr_end || index < 0) {
                 fprintf(stderr, "***index [%d] out of bounds***\n", index);
@@ -146,14 +156,18 @@ void *get_obj_at(array_list *arr_list, int index)
                 exit(EXIT_FAILURE);
         }
 
-        return get_object(&arr_list->array[index], arr_list->type);
+        if (arr_length > 0)
+                return get_object(&arr_list->array[index], type);
+
+        return (struct result) { .is_present = false };
 }
 
-void remove_obj_at(array_list *arr_list, int index)
+result remove_obj_at(array_list *arr_list, int index)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_end = arr_length - 1;
         const size_t obj_size = sizeof(struct object);
+        const obj_type type = arr_list->type;
 
         if (index > arr_end || index < 0) {
                 fprintf(stderr, "***index [%d] out of bounds***\n", index);
@@ -162,17 +176,38 @@ void remove_obj_at(array_list *arr_list, int index)
         }
 
         if (arr_length > 0) {
-                if (index == arr_end) {
-                        memset(&arr_list->array[arr_end], 0, obj_size);
-                        decrease_array_length(arr_list);
-                        return;
-                }
+                if (index == arr_end)
+                        return remove_obj(arr_list);
+
+                result obj = get_object(&arr_list->array[index], type);
 
                 for (int i = index; i < arr_length; i++)
                         arr_list->array[i] = arr_list->array[i + 1];
 
                 memset(&arr_list->array[arr_end], 0, obj_size);
                 decrease_array_length(arr_list);
+
+                return obj;
+        }
+
+        return (struct result) { .is_present = false };
+}
+
+void show_array(array_list *arr_list, to_string_fn to_string, bool reverse)
+{
+        const size_t arr_length = arr_list->length;
+
+        if (arr_length > 0) {
+                int start = reverse ? arr_length : 0;
+                int end = reverse ? 0 : arr_length;
+
+                if (reverse) {
+                        for (int i = start - 1; i >= end; i--)
+                                to_string(arr_list->array[i]);
+                } else {
+                        for (int i = start; i < end; i++)
+                                to_string(arr_list->array[i]);
+                }
         }
 }
 
@@ -181,8 +216,9 @@ void destroy_array_list(array_list *arr_list)
         if (arr_list->array != NULL) {
                 free(arr_list->array);
                 arr_list->array = NULL;
-                arr_list->size = 0;
-                arr_list->length = 0;
+                arr_list->type = -1;
+                arr_list->size = -1;
+                arr_list->length = -1;
         }
 
         if (arr_list != NULL) {
