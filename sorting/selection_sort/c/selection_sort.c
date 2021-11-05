@@ -5,7 +5,7 @@ static bool is_empty(object *array)
         return array == NULL;
 }
 
-static void swapp(object *a, object *b)
+static void swap(object *a, object *b)
 {
         object aux = *a;
         *a = *b;
@@ -29,6 +29,6 @@ void s_sort(object *array, size_t arr_length, compare_obj_fn comparator)
                 }
 
                 if (min_value_index != i)
-                        swapp(&array[i], &array[min_value_index]);
+                        swap(&array[i], &array[min_value_index]);
         }
 }
