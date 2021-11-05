@@ -97,17 +97,17 @@ static void heapify(object *array, size_t arr_size, int64_t index, compare_obj_f
         if (arr_size <= 1)
                 return;
 
-        int64_t largest = index;
+        int64_t smaller = index;
         int64_t left_element = 2 * index + 1;
         int64_t rigth_element = 2 * index + 2;
 
-        if (left_element < arr_size && comparator(array[left_element], array[largest]) < 0)
-                largest = left_element;
-        if (rigth_element < arr_size && comparator(array[rigth_element], array[largest]) < 0)
-                largest = rigth_element;
-        if (largest != index) {
-                swap(&array[index], &array[largest]);
-                heapify(array, arr_size, largest, comparator);
+        if (left_element < arr_size && comparator(array[left_element], array[smaller]) < 0)
+                smaller = left_element;
+        if (rigth_element < arr_size && comparator(array[rigth_element], array[smaller]) < 0)
+                smaller = rigth_element;
+        if (smaller != index) {
+                swap(&array[index], &array[smaller]);
+                heapify(array, arr_size, smaller, comparator);
         }
 }
 
