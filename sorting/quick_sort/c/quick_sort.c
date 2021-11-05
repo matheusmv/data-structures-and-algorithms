@@ -5,7 +5,7 @@ static bool is_empty(object *array)
         return array == NULL;
 }
 
-static void swapp(object *a, object *b)
+static void swap(object *a, object *b)
 {
         object aux = *a;
         *a = *b;
@@ -25,7 +25,7 @@ static int64_t partition(object *array, int64_t start, int64_t end, compare_obj_
                 while (arr_right >= 0 && comparator(array[arr_right], pivot) > 0)
                         arr_right -= 1;
                 if (arr_left < arr_right)
-                        swapp(&array[arr_left], &array[arr_right]);
+                        swap(&array[arr_left], &array[arr_right]);
         }
 
         array[start] = array[arr_right];
