@@ -78,6 +78,7 @@ void push(stack *stack, void *object)
 
                         if (new_node->value == NULL) {
                                 fprintf(stderr, "***error creating object***\n");
+                                free(new_node);
                                 destroy_stack(stack);
                                 exit(EXIT_FAILURE);
                         }
