@@ -1,12 +1,12 @@
 #include "stack.h"
 
 typedef struct __node {
-        struct object value;
+        void *value;
         struct __node *next;
 } node;
 
 typedef struct __stack {
-        int type;
+        size_t esize;
         size_t length;
         struct __node *top;
         struct __node *base;
@@ -25,17 +25,26 @@ static void decrease_stack_length(stack *stack)
                 stack->length -= 1;
 }
 
-stack *new_stack(int type)
+static void *copy_object(const void *obj, size_t obj_size)
+{
+        void *copy;
+
+        copy = malloc(obj_size);
+
+        memcpy(copy, obj, obj_size);
+
+        return copy;
+}
+
+stack *new_stack(size_t element_size)
 {
         stack *new_stack = malloc(sizeof(stack));
 
         if (new_stack == NULL)
                 return NULL;
 
-        const int stack_type = get_object_type(type);
-
         *new_stack = (stack) {
-                .type = stack_type,
+                .esize = element_size,
                 .length = 0,
                 .top = NULL,
                 .base = NULL,
@@ -54,7 +63,7 @@ bool is_empty(stack *stack)
         return stack->base == NULL;
 }
 
-void push(stack *stack, struct object object)
+void push(stack *stack, void *object)
 {
         if (stack != NULL) {
                 node *new_node = malloc(sizeof(node));
@@ -64,8 +73,14 @@ void push(stack *stack, struct object object)
 
                         *new_node = (node) {
                                 .next = top,
-                                .value = object,
+                                .value = copy_object(object, stack->esize)
                         };
+
+                        if (new_node->value == NULL) {
+                                fprintf(stderr, "***error creating object***\n");
+                                destroy_stack(stack);
+                                exit(EXIT_FAILURE);
+                        }
 
                         if (stack->base == NULL)
                                 stack->base = new_node;
@@ -90,18 +105,15 @@ void pop(stack *stack)
                 }
 
                 decrease_stack_length(stack);
+                free(top->value);
                 free(top);
         }
 }
 
 void *peek(stack *stack)
 {
-        if (!is_empty(stack)) {
-                node *top = stack->top;
-                const int stack_type = stack->type;
-
-                return get_object(&top->value, stack_type);
-        }
+        if (!is_empty(stack))
+                return stack->top->value;
 
         return NULL;
 }
@@ -133,7 +145,7 @@ static node *get_node(stack *stack, int index)
         return NULL;
 }
 
-void show_stack(stack *stack, void (*to_string)(struct object object), bool reverse)
+void show_stack(stack *stack, void (*to_string)(void *object), bool reverse)
 {
         if (!is_empty(stack)) {
                 const size_t stack_length = stack->length;
@@ -143,10 +155,10 @@ void show_stack(stack *stack, void (*to_string)(struct object object), bool reve
 
                 if (reverse) {
                         for (int i = start - 1; i >= end; i--)
-                                to_string(*(struct object *) get_node(stack, i));
+                                to_string(get_node(stack, i)->value);
                 } else {
                         for (int i = start; i < end; i++)
-                                to_string(*(struct object *) get_node(stack, i));
+                                to_string(get_node(stack, i)->value);
                 }
         }
 }
@@ -157,7 +169,6 @@ void destroy_stack(stack *stack)
                 while (!is_empty(stack))
                         pop(stack);
 
-                stack->type = -1;
                 stack->length = -1;
                 stack->top = NULL;
                 stack->base = NULL;

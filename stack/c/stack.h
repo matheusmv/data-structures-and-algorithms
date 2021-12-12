@@ -1,8 +1,6 @@
 #ifndef _STACK
 #define _STACK
 
-#include "data_types.h"
-
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -16,13 +14,13 @@
 
 typedef struct __stack stack;
 
-stack *new_stack(int type);
+stack *new_stack(size_t element_size);
 size_t get_length(stack *stack);
 bool is_empty(stack *stack);
-void push(stack *stack, struct object object);
+void push(stack *stack, void *object);
 void pop(stack *stack);
 void *peek(stack *stack);
-void show_stack(stack *stack, void (*to_string)(struct object object), bool reverse);
+void show_stack(stack *stack, void (*to_string)(void *object), bool reverse);
 void destroy_stack(stack *stack);
 
 #endif

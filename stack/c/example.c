@@ -1,7 +1,13 @@
 /**
- * gcc data_types.c stack.c example.c -o program
+ * gcc stack.c example.c -o program
  */
 #include "stack.h"
+
+struct student {
+        int id;
+        char *name;
+        float n1, n2, n3;
+};
 
 struct student students[] = {
         {.id = 1, .name = "student 1", .n1 = 5.2f, .n2 = 8.0f, .n3 = 7.2f},
@@ -11,43 +17,53 @@ struct student students[] = {
         {.id = 5, .name = "student 5", .n1 = 8.2f, .n2 = 7.9f, .n3 = 7.7f},
 };
 
-void show_students(struct object);
+void show_student(void *obj);
 
 int main(int argc, char *argv[])
 {
-        stack *student_stack = new_stack(STUDENT_TYPE);
+        stack *student_stack = new_stack(sizeof(struct student));
 
         if (student_stack == NULL)
                 return EXIT_FAILURE;
 
-        push(student_stack, (struct object) { ._student = students[0] });
-        push(student_stack, (struct object) { ._student = students[1] });
-        push(student_stack, (struct object) { ._student = students[2] });
+        push(student_stack, &students[0]);
+        push(student_stack, &students[1]);
+        push(student_stack, &students[2]);
 
-        struct student *result = peek(student_stack);
+        void *result = peek(student_stack);
 
-        if (result != NULL)
-                printf("%d - %s\n", result->id, result->name);
+        if (result != NULL) {
+                printf("\tfound:\n");
+                show_student(result);
+                printf("\n");
+        }
 
-        show_stack(student_stack, show_students, IN_ORDER);
+        printf("in order\n");
+        show_stack(student_stack, show_student, IN_ORDER);
+        printf("\n");
 
         pop(student_stack);
 
-        show_stack(student_stack, show_students, IN_ORDER);
+        printf("reverse\n");
+        show_stack(student_stack, show_student, REVERSE);
+        printf("\n");
 
         result = peek(student_stack);
 
-        if (result != NULL)
-                printf("%d - %s\n", result->id, result->name);
+        if (result != NULL) {
+                printf("\tfound:\n");
+                show_student(result);
+                printf("\n");
+        }
 
         destroy_stack(student_stack);
 
         return EXIT_SUCCESS;
 }
 
-void show_students(struct object obj)
+void show_student(void *obj)
 {
-        struct student result = obj._student;
+        struct student *result = obj;
 
-        printf("\t%d - %s\n", result.id, result.name);
+        printf("\t%d - %s\n", result->id, result->name);
 }
