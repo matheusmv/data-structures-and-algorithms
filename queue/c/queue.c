@@ -1,12 +1,12 @@
 #include "queue.h"
 
 typedef struct __node {
-        struct object value;
+        void *value;
         struct __node *next;
 } node;
 
 typedef struct __queue {
-        int type;
+        size_t esize;
         size_t length;
         struct __node *start;
         struct __node *end;
@@ -25,17 +25,26 @@ static void decrease_queue_length(queue *queue)
                 queue->length -= 1;
 }
 
-queue *new_queue(int type)
+static void *copy_object(const void *obj, size_t obj_size)
+{
+        void *copy;
+
+        copy = malloc(obj_size);
+
+        memcpy(copy, obj, obj_size);
+
+        return copy;
+}
+
+queue *new_queue(size_t element_size)
 {
         queue *new_queue = malloc(sizeof(queue));
 
         if (new_queue == NULL)
                 return NULL;
 
-        const int queue_type = get_object_type(type);
-
         *new_queue = (queue) {
-                .type = queue_type,
+                .esize = element_size,
                 .length = 0,
                 .start = NULL,
                 .end = NULL,
@@ -54,7 +63,7 @@ bool is_empty(queue *queue)
         return queue->end == NULL;
 }
 
-void enqueue(queue *queue, struct object object)
+void enqueue(queue *queue, void *object)
 {
         if (queue != NULL) {
                 node *new_node = malloc(sizeof(node));
@@ -67,8 +76,15 @@ void enqueue(queue *queue, struct object object)
 
                         *new_node = (node) {
                                 .next = NULL,
-                                .value = object,
+                                .value = copy_object(object, queue->esize),
                         };
+
+                        if (new_node->value == NULL) {
+                                fprintf(stderr, "***error creating object***\n");
+                                free(new_node);
+                                destroy_queue(queue);
+                                exit(EXIT_FAILURE);
+                        }
 
                         if (queue->start == NULL)
                                 queue->start = new_node;
@@ -93,18 +109,15 @@ void dequeue(queue *queue)
                 }
 
                 decrease_queue_length(queue);
+                free(start->value);
                 free(start);
         }
 }
 
 void *peek(queue *queue)
 {
-        if (!is_empty(queue)) {
-                node *start = queue->start;
-                const int queue_type = queue->type;
-
-                return get_object(&start->value, queue_type);
-        }
+        if (!is_empty(queue))
+                return queue->start->value;
 
         return NULL;
 }
@@ -136,7 +149,7 @@ static node *get_node(queue *queue, int index)
         return NULL;
 }
 
-void show_queue(queue *queue, void (*to_string)(struct object object), bool reverse)
+void show_queue(queue *queue, void (*to_string)(void *object), bool reverse)
 {
         if (!is_empty(queue)) {
                 const size_t queue_length = queue->length;
@@ -146,10 +159,10 @@ void show_queue(queue *queue, void (*to_string)(struct object object), bool reve
 
                 if (reverse) {
                         for (int i = start - 1; i >= end; i--)
-                                to_string(*(struct object *) get_node(queue, i));
+                                to_string(get_node(queue, i)->value);
                 } else {
                         for (int i = start; i < end; i++)
-                                to_string(*(struct object *) get_node(queue, i));
+                                to_string(get_node(queue, i)->value);
                 }
         }
 }
@@ -160,7 +173,6 @@ void destroy_queue(queue *queue)
                 while (!is_empty(queue))
                         dequeue(queue);
 
-                queue->type = -1;
                 queue->length = -1;
                 queue->start = NULL;
                 queue->end = NULL;
