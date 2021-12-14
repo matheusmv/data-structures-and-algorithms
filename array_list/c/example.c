@@ -1,7 +1,18 @@
 /**
- * gcc data_types.c array_list.c example.c -o program
+ * gcc array_list.c example.c -o program
  */
 #include "array_list.h"
+
+struct state {
+        int number;
+        char *state;
+        char *abbreviation;
+};
+
+struct user {
+        char *username;
+        char *password;
+};
 
 struct state states[] = {
         {.number = 1, .state = "Acre", .abbreviation = "AC"},
@@ -41,12 +52,12 @@ struct user users[] = {
         {.username = "username 5", .password = "password 5"},
 };
 
-void show_states(object obj);
-void show_users(object obj);
+void show_states(void *obj);
+void show_users(void *obj);
 
 int main(int argc, char *argv[])
 {
-        array_list *state_list = new_array_list(10, STATE_TYPE);
+        array_list *state_list = new_array_list(10, sizeof(struct state));
 
         if (state_list == NULL)
                 return EXIT_FAILURE;
@@ -54,33 +65,32 @@ int main(int argc, char *argv[])
         const int state_arr_s = sizeof(states) / sizeof(struct state);
 
         for (int i = 0; i < state_arr_s; i++)
-                append_obj(state_list, (object) { ._state = states[i] });
+                append_obj(state_list, &states[i]);
 
-        show_array(state_list, show_states, REVERSE);
+        // show_array(state_list, show_states, REVERSE);
 
-        remove_obj(state_list);
-        remove_obj(state_list);
-        remove_obj(state_list);
-        remove_obj(state_list);
-        remove_obj(state_list);
+        remove_obj(state_list, NULL);
+        remove_obj(state_list, NULL);
+        remove_obj(state_list, NULL);
+        remove_obj(state_list, NULL);
+        remove_obj(state_list, NULL);
 
-        show_array(state_list, show_states, IN_ORDER);
+        // show_array(state_list, show_states, IN_ORDER);
 
-        add_obj_at(state_list, (object) { ._state = states[10] }, 0);
-        add_obj_at(state_list, (object) { ._state = states[10] }, 2);
-        add_obj_at(state_list, (object) { ._state = states[10] }, 4);
-        add_obj_at(state_list, (object) { ._state = states[10] }, 8);
+        add_obj_at(state_list, &states[10], 0);
+        add_obj_at(state_list, &states[10], 2);
+        add_obj_at(state_list, &states[10], 4);
+        add_obj_at(state_list, &states[10], 8);
 
-        show_array(state_list, show_states, IN_ORDER);
+        // show_array(state_list, show_states, IN_ORDER);
 
-        result state_result = get_obj_at(state_list, 4);
-
-        if (state_result.is_present) {
+        struct state result;
+        if (get_obj_at(state_list, 4, &result) == 0) {
                 printf("\t***found: ");
-                show_states(state_result.object);
+                show_states(&result);
         }
 
-        remove_obj_at(state_list, 5);
+        remove_obj_at(state_list, 5, NULL);
 
         show_array(state_list, show_states, IN_ORDER);
 
@@ -88,7 +98,7 @@ int main(int argc, char *argv[])
 
         /********************************************************************/
 
-        array_list *users_list = new_array_list(1, USER_TYPE);
+        array_list *users_list = new_array_list(1, sizeof(struct user));
 
         if (users_list == NULL)
                 return EXIT_FAILURE;
@@ -98,28 +108,27 @@ int main(int argc, char *argv[])
         const int user_arr_s = sizeof(users) / sizeof(struct user);
 
         for (int i = 0; i < user_arr_s; i++)
-                append_obj(users_list, (object) { ._user = users[i] });
+                append_obj(users_list, &users[i]);
 
-        show_array(users_list, show_users, IN_ORDER);
+        // show_array(users_list, show_users, IN_ORDER);
 
-        remove_obj(users_list);
-        remove_obj(users_list);
+        remove_obj(users_list, NULL);
+        remove_obj(users_list, NULL);
 
-        show_array(users_list, show_users, IN_ORDER);
+        // show_array(users_list, show_users, IN_ORDER);
 
-        add_obj_at(users_list, (object) { ._user = users[2] }, 0);
-        add_obj_at(users_list, (object) { ._user = users[2] }, 4);
+        add_obj_at(users_list, &users[2], 0);
+        add_obj_at(users_list, &users[2], 4);
 
-        show_array(users_list, show_users, IN_ORDER);
+        // show_array(users_list, show_users, IN_ORDER);
 
-        result usr_result = get_obj_at(users_list, 4);
-
-        if (usr_result.is_present) {
+        struct user usr_result;
+        if (get_obj_at(users_list, 4, &usr_result) == 0) {
                 printf("\t***found: ");
-                show_users(usr_result.object);
+                show_users(&usr_result);
         }
 
-        remove_obj_at(users_list, 0);
+        remove_obj_at(users_list, 0, NULL);
 
         show_array(users_list, show_users, IN_ORDER);
 
@@ -128,16 +137,17 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
 }
 
-void show_states(object obj)
+void show_states(void *obj)
 {
-        struct state state = obj._state;
+        struct state *state = obj;
 
-        printf("\t%d - %s - %s\n", state.number, state.state, state.abbreviation);
+        printf("\t%d - %s - %s\n",
+               state->number, state->state, state->abbreviation);
 }
 
-void show_users(object obj)
+void show_users(void *obj)
 {
-        struct user user = obj._user;
+        struct user *user = obj;
 
-        printf("\t%s - %s\n", user.username, user.password);
+        printf("\t%s - %s\n", user->username, user->password);
 }
