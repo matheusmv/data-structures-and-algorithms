@@ -1,7 +1,13 @@
 /**
- * gcc data_types.c binary_tree.c example.c -o program
+ * gcc binary_tree.c example.c -o program
  */
 #include "binary_tree.h"
+
+struct student {
+        int id;
+        char *name;
+        float n1, n2, n3;
+};
 
 struct student students[] = {
         {.id = 1, .name = "student 1", .n1 = 5.2F, .n2 = 8.0F, .n3 = 7.2F},
@@ -11,13 +17,12 @@ struct student students[] = {
         {.id = 5, .name = "student 5", .n1 = 8.2F, .n2 = 7.9F, .n3 = 7.7F},
 };
 
-bool greater_than(object, object);
-bool equals(object, object);
-void show_students(object);
+int compare_by_id(void *a, void *b);
+void show_students(void *);
 
 int main(int argc, char *argv[])
 {
-        binary_tree *student_tree = new_binary_tree(STUDENT_TYPE);
+        binary_tree *student_tree = new_binary_tree(sizeof(struct student));
 
         if (student_tree == NULL)
                 return EXIT_FAILURE;
@@ -25,7 +30,7 @@ int main(int argc, char *argv[])
         const int student_arr_len = sizeof(students) / sizeof(struct student);
 
         for (int i = 0; i < student_arr_len; i++)
-                insert_obj(student_tree, (object) { ._student = students[i] }, equals, greater_than);
+                insert_obj(student_tree, &students[i], compare_by_id);
 
         printf("Pre Order:\n");
         show_binary_tree(student_tree, PRE_ORDER, show_students);
@@ -36,43 +41,33 @@ int main(int argc, char *argv[])
         printf("Post Order:\n");
         show_binary_tree(student_tree, POST_ORDER, show_students);
 
-        object to_find = (struct object) {
-                ._student = students[0],
-        };
-
-        result result = search_obj(student_tree, to_find, equals, greater_than);
-
-        if (result.is_present) {
+        void *result;
+        result = search_obj(student_tree, &students[0], compare_by_id);
+        if (result != NULL) {
                 printf("*** \tfound: ");
-                show_students(result.object);
+                show_students(result);
         }
 
-        result = find_and_remove_obj(student_tree, to_find, equals, greater_than);
-
-        if (result.is_present) {
+        struct student sresult;
+        if (find_and_remove_obj(student_tree, &students[0], compare_by_id, &sresult) == 0) {
                 printf("*** \tremoved: ");
-                show_students(result.object);
+                show_students(&sresult);
         }
 
-        result = remove_obj(student_tree);
-
-        if (result.is_present) {
+        if (remove_obj(student_tree, &sresult) == 0) {
                 printf("*** \tremoved: ");
-                show_students(result.object);
+                show_students(&sresult);
         }
 
-        result = remove_obj(student_tree);
-
-        if (result.is_present) {
+        if (remove_obj(student_tree, &sresult) == 0) {
                 printf("*** \tremoved: ");
-                show_students(result.object);
+                show_students(&sresult);
         }
 
-        result = search_obj(student_tree, to_find, equals, greater_than);
-
-        if (result.is_present) {
+        result = search_obj(student_tree, &students[0], compare_by_id);
+        if (result != NULL) {
                 printf("*** \tfound: ");
-                show_students(result.object);
+                show_students(result);
         }
 
         printf("Pre Order:\n");
@@ -94,30 +89,19 @@ static float grade_average(float n1, float n2, float n3)
         return (n1 + n2 + n3) / 3.0F;
 }
 
-bool greater_than(object a, object b)
+int compare_by_id(void *a, void *b)
 {
-        struct student studentA = a._student;
-        struct student studentB = b._student;
+        struct student *studentA = a;
+        struct student *studentB = b;
 
-        float gavA = grade_average(studentA.n1, studentA.n2, studentA.n3);
-        float gavB = grade_average(studentB.n1, studentB.n2, studentB.n3);
-
-        return gavA > gavB;
+        return studentA->id - studentB->id;
 }
 
-bool equals(object a, object b)
+void show_students(void *obj)
 {
-        struct student studentA = a._student;
-        struct student studentB = b._student;
+        struct student *student = obj;
 
-        return studentA.id == studentB.id;
-}
+        float gav = grade_average(student->n1, student->n2, student->n3);
 
-void show_students(object obj)
-{
-        struct student result = obj._student;
-
-        float gav = grade_average(result.n1, result.n2, result.n3);
-
-        printf("\t%d - %s - %.2f\n", result.id, result.name, gav);
+        printf("\t%d - %s - %.2f\n", student->id, student->name, gav);
 }

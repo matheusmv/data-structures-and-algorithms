@@ -2,13 +2,13 @@
 
 typedef struct __node {
         size_t amount;
-        struct object value;
+        void *value;
         struct __node *left_node;
         struct __node *right_node;
 } node;
 
 typedef struct __binary_tree {
-        obj_type type;
+        size_t esize;
         size_t number_of_nodes;
         struct __node *root_node;
 } binary_tree;
@@ -26,17 +26,35 @@ static void decrease_number_of_nodes(binary_tree *tree)
                 tree->number_of_nodes -= 1;
 }
 
-binary_tree *new_binary_tree(obj_type type)
+static void *copy_object(const void *obj, size_t obj_size)
+{
+        void *copy;
+
+        copy = malloc(obj_size);
+
+        memcpy(copy, obj, obj_size);
+
+        return copy;
+}
+
+static void free_node(node *node)
+{
+        if (node != NULL) {
+                if (node->value != NULL)
+                        free(node->value);
+                free(node);
+        }
+}
+
+binary_tree *new_binary_tree(size_t element_size)
 {
         binary_tree *tree = malloc(sizeof(binary_tree));
 
         if (tree == NULL)
                 return NULL;
 
-        obj_type tree_type = get_object_type(type);
-
         *tree = (binary_tree) {
-                .type = tree_type,
+                .esize = element_size,
                 .number_of_nodes = 0,
                 .root_node = NULL,
         };
@@ -54,8 +72,7 @@ bool is_empty(binary_tree *tree)
         return tree->root_node == NULL;
 }
 
-static void insert_node(binary_tree *tree, node *new_node,
-                        equals_fn equals, greater_than_fn greater_than)
+static void insert_node(binary_tree *tree, node *new_node, comparator_fn comparator)
 {
         node *current = tree->root_node;
         node *parent = NULL;
@@ -63,13 +80,13 @@ static void insert_node(binary_tree *tree, node *new_node,
         while (1) {
                 parent = current;
 
-                if (equals(new_node->value, parent->value)) {
+                if (comparator(new_node->value, parent->value) == 0) {
                         parent->amount += 1;
-                        free(new_node);
+                        free_node(new_node);
                         return;
                 }
 
-                if (greater_than(new_node->value, parent->value)) {
+                if (comparator(new_node->value, parent->value) > 0) {
                         current = current->right_node;
 
                         if (current == NULL) {
@@ -87,8 +104,7 @@ static void insert_node(binary_tree *tree, node *new_node,
         }
 }
 
-void insert_obj(binary_tree *tree, object object,
-                equals_fn equals, greater_than_fn greater_than)
+void insert_obj(binary_tree *tree, void *object, comparator_fn comparator)
 {
         if (tree != NULL) {
                 node *new_node = malloc(sizeof(node));
@@ -96,15 +112,22 @@ void insert_obj(binary_tree *tree, object object,
                 if (new_node != NULL) {
                         *new_node = (node) {
                                 .amount = 1,
-                                .value = object,
+                                .value = copy_object(object, tree->esize),
                                 .left_node = NULL,
                                 .right_node = NULL,
                         };
 
+                        if (new_node->value == NULL) {
+                                fprintf(stderr, "***error creating object***\n");
+                                free_node(new_node);
+                                destroy_binary_tree(tree);
+                                exit(EXIT_FAILURE);
+                        }
+
                         if (is_empty(tree)) {
                                 tree->root_node = new_node;
                         } else {
-                                insert_node(tree, new_node, equals, greater_than);
+                                insert_node(tree, new_node, comparator);
                         }
 
                         increase_number_of_nodes(tree);
@@ -124,7 +147,7 @@ static node *remove_node(node *rmv_node)
 
         if (rmv_node->left_node == NULL) {
                 aux_2 = rmv_node->right_node;
-                free(rmv_node);
+                free_node(rmv_node);
                 return aux_2;
         }
 
@@ -143,38 +166,39 @@ static node *remove_node(node *rmv_node)
 
         aux_2->right_node = rmv_node->right_node;
 
-        free(rmv_node);
+        free_node(rmv_node);
 
         return aux_2;
 }
 
-result remove_obj(binary_tree *tree)
+int remove_obj(binary_tree *tree, void *buffer)
 {
         if (!is_empty(tree)) {
                 node *current = tree->root_node;
 
-                object obj_removed = current->value;
+                if (buffer != NULL)
+                        memmove(buffer, current->value, tree->esize);
 
                 tree->root_node = remove_node(current);
 
                 decrease_number_of_nodes(tree);
 
-                return get_object(&obj_removed, tree->type);
+                return 0;
         }
 
-        return (struct result) { .is_present = false };
+        return -1;
 }
 
-result find_and_remove_obj(binary_tree *tree, object object,
-                           equals_fn equals, greater_than_fn greater_than)
+int find_and_remove_obj(binary_tree *tree, void *object, comparator_fn comparator, void *buffer)
 {
         if (!is_empty(tree)) {
                 node *current = tree->root_node;
                 node *parent = NULL;
 
                 while (current != NULL) {
-                        if (equals(object, current->value)) {
-                                result obj = get_object(&current->value, tree->type);;
+                        if (comparator(object, current->value) == 0) {
+                                if (buffer != NULL)
+                                        memmove(buffer, current->value, tree->esize);
 
                                 if (current == tree->root_node) {
                                         tree->root_node = remove_node(current);
@@ -186,12 +210,12 @@ result find_and_remove_obj(binary_tree *tree, object object,
 
                                 decrease_number_of_nodes(tree);
 
-                                return obj;
+                                return 0;
                         }
 
                         parent = current;
 
-                        if (greater_than(object, parent->value)) {
+                        if (comparator(object, parent->value) > 0) {
                                 current = current->right_node;
                         } else {
                                 current = current->left_node;
@@ -199,20 +223,19 @@ result find_and_remove_obj(binary_tree *tree, object object,
                 }
         }
 
-        return (struct result) { .is_present = false };
+        return -1;
 }
 
-result search_obj(binary_tree *tree, object object,
-                  equals_fn equals, greater_than_fn greater_than)
+void *search_obj(binary_tree *tree, void *object, comparator_fn comparator)
 {
         if (!is_empty(tree)) {
                 node *current = tree->root_node;
 
                 while (current != NULL) {
-                        if (equals(current->value, object))
-                                return get_object(&current->value, tree->type);
+                        if (comparator(current->value, object) == 0)
+                                return current->value;
 
-                        if (greater_than(object, current->value)) {
+                        if (comparator(object, current->value) > 0) {
                                 current = current->right_node;
                         } else {
                                 current = current->left_node;
@@ -220,7 +243,7 @@ result search_obj(binary_tree *tree, object object,
                 }
         }
 
-        return (struct result) { .is_present = false };
+        return NULL;
 }
 
 static void pre_order_traversal(node *node, to_string_fn to_string)
@@ -277,7 +300,7 @@ static void destroy_node(node *node)
         destroy_node(node->left_node);
         destroy_node(node->right_node);
 
-        free(node);
+        free_node(node);
         node = NULL;
 }
 
@@ -288,8 +311,7 @@ void destroy_binary_tree(binary_tree *tree)
 
                 destroy_node(root);
 
-                tree->type = -1;
-                tree->number_of_nodes = -1;
+                tree->number_of_nodes = 0;
 
                 free(tree);
                 tree = NULL;
