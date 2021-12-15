@@ -1,7 +1,13 @@
 /**
- * gcc data_types.c priority_queue.c example.c -o program
+ * gcc priority_queue.c example.c -o program
  */
 #include "priority_queue.h"
+
+struct student {
+        int id;
+        char *name;
+        float n1, n2, n3;
+};
 
 struct student students[] = {
         {.id = 1, .name = "student 1", .n1 = 5.2F, .n2 = 8.0F, .n3 = 7.2F},
@@ -11,12 +17,12 @@ struct student students[] = {
         {.id = 5, .name = "student 5", .n1 = 8.2F, .n2 = 7.9F, .n3 = 7.7F},
 };
 
-void show_student(object obj);
-int by_lowest_grade(object a, object b);
+void show_student(void *obj);
+int by_lowest_grade(void *a, void *b);
 
 int main(int argc, char *argv[])
 {
-        priority_queue *pq_students = new_priority_queue(5, STUDENT_TYPE, by_lowest_grade);
+        priority_queue *pq_students = new_priority_queue(5, sizeof(struct student), by_lowest_grade);
 
         if (pq_students == NULL)
                 return EXIT_FAILURE;
@@ -24,12 +30,12 @@ int main(int argc, char *argv[])
         const size_t arr_len = sizeof(students) / sizeof(students[0]);
 
         for (int i = 0; i < arr_len; i++)
-                enqueue(pq_students, (object) { ._student = students[i] });
+                enqueue(pq_students, &students[i]);
 
+        struct student result;
         for (int i = 0; i < arr_len; i++) {
-                result result = dequeue(pq_students);
-                if (result.is_present)
-                        show_student(result.object);
+                if (dequeue(pq_students, &result) == 0)
+                        show_student(&result);
         }
 
         destroy_priority_queue(pq_students);
@@ -42,22 +48,22 @@ static float grade_average(float n1, float n2, float n3)
         return (n1 + n2 + n3) / 3.0F;
 }
 
-void show_student(object obj)
+void show_student(void *obj)
 {
-        struct student student = obj._student;
+        struct student *student = obj;
 
-        float gav = grade_average(student.n1, student.n2, student.n3);
+        float gav = grade_average(student->n1, student->n2, student->n3);
 
-        printf("\t%d - \t%s - \t%.2f\n", student.id, student.name, gav);
+        printf("\t%d - \t%s - \t%.2f\n", student->id, student->name, gav);
 }
 
-int by_lowest_grade(object a, object b)
+int by_lowest_grade(void *a, void *b)
 {
-        struct student studentA = a._student;
-        struct student studentB = b._student;
+        struct student *studentA = a;
+        struct student *studentB = b;
 
-        float gavA = grade_average(studentA.n1, studentA.n2, studentA.n3);
-        float gavB = grade_average(studentB.n1, studentB.n2, studentB.n3);
+        float gavA = grade_average(studentA->n1, studentA->n2, studentA->n3);
+        float gavB = grade_average(studentB->n1, studentB->n2, studentB->n3);
 
-        return gavA - gavB;
+        return gavA < gavB ? -1 : 1;
 }
