@@ -1,6 +1,9 @@
 package queue
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 type node struct {
 	Data interface{}
@@ -8,9 +11,10 @@ type node struct {
 }
 
 type queue struct {
-	Size  uint
+	Size  int
 	Start *node
 	End   *node
+	Lock  sync.Mutex
 }
 
 func newNode(data interface{}, next *node) *node {
@@ -34,7 +38,7 @@ func (q *queue) decreaseSize() {
 	}
 }
 
-func (q *queue) GetSize() uint {
+func (q *queue) GetSize() int {
 	return q.Size
 }
 
@@ -43,6 +47,9 @@ func (q *queue) IsEmpty() bool {
 }
 
 func (q *queue) Enqueue(data interface{}) {
+	q.Lock.Lock()
+	defer q.Lock.Unlock()
+
 	newNode := newNode(data, nil)
 
 	if q.Start == nil {
@@ -59,9 +66,19 @@ func (q *queue) Enqueue(data interface{}) {
 }
 
 func (q *queue) Dequeue() interface{} {
+	q.Lock.Lock()
+	defer q.Lock.Unlock()
+
 	if !q.IsEmpty() {
 		start := q.Start
-		q.Start = start.Next
+
+		if q.GetSize() > 1 {
+			q.Start = start.Next
+		} else {
+			q.Start = nil
+			q.End = nil
+		}
+
 		q.decreaseSize()
 		return start.Data
 	}
@@ -69,9 +86,9 @@ func (q *queue) Dequeue() interface{} {
 	return nil
 }
 
-func (q *queue) Peek() *node {
+func (q *queue) Peek() interface{} {
 	if !q.IsEmpty() {
-		return q.Start
+		return q.Start.Data
 	}
 
 	return nil
