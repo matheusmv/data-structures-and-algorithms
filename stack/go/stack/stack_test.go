@@ -39,7 +39,7 @@ func TestPop(t *testing.T) {
 		t.Run("it should return nil response", func(t *testing.T) {
 			item := stack.Pop()
 
-			assert.Equal(t, item, nil)
+			assert.Nil(t, item)
 			assert.Equal(t, stack, expectedStack)
 		})
 	})
@@ -69,7 +69,7 @@ func TestIsEmpty(t *testing.T) {
 		t.Run("it should return false", func(t *testing.T) {
 			stack.Push(user{"username 1", "password 1"})
 
-			assert.Equal(t, stack.IsEmpty(), false)
+			assert.False(t, stack.IsEmpty())
 		})
 	})
 
@@ -77,12 +77,12 @@ func TestIsEmpty(t *testing.T) {
 		t.Run("it should return true", func(t *testing.T) {
 			stack.Pop()
 
-			assert.Equal(t, stack.IsEmpty(), true)
+			assert.True(t, stack.IsEmpty())
 		})
 	})
 }
 
-func TestPekk(t *testing.T) {
+func TestPeek(t *testing.T) {
 
 	t.Run("when stack is not empty", func(t *testing.T) {
 		stack := NewStack()
@@ -110,7 +110,7 @@ func TestPekk(t *testing.T) {
 		t.Run("it should return nil", func(t *testing.T) {
 			item := stack.Peek()
 
-			assert.Equal(t, item, nil)
+			assert.Nil(t, item)
 		})
 	})
 }
