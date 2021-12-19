@@ -1,6 +1,9 @@
 package stack
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 type node struct {
 	Data interface{}
@@ -8,9 +11,9 @@ type node struct {
 }
 
 type stack struct {
-	Size uint
+	Size int
 	Top  *node
-	Base *node
+	Lock sync.Mutex
 }
 
 func newNode(data interface{}, next *node) *node {
@@ -20,7 +23,7 @@ func newNode(data interface{}, next *node) *node {
 	}
 }
 
-func Newstack() *stack {
+func NewStack() *stack {
 	return &stack{}
 }
 
@@ -34,7 +37,7 @@ func (stk *stack) decreaseSize() {
 	}
 }
 
-func (stk *stack) GetSize() uint {
+func (stk *stack) GetSize() int {
 	return stk.Size
 }
 
@@ -43,11 +46,10 @@ func (stk *stack) IsEmpty() bool {
 }
 
 func (stk *stack) Push(data interface{}) {
-	newNode := newNode(data, stk.Top)
+	stk.Lock.Lock()
+	defer stk.Lock.Unlock()
 
-	if stk.Base == nil {
-		stk.Base = newNode
-	}
+	newNode := newNode(data, stk.Top)
 
 	stk.Top = newNode
 
@@ -55,6 +57,9 @@ func (stk *stack) Push(data interface{}) {
 }
 
 func (stk *stack) Pop() interface{} {
+	stk.Lock.Lock()
+	defer stk.Lock.Unlock()
+
 	if !stk.IsEmpty() {
 		top := stk.Top
 		stk.Top = top.Next
@@ -65,9 +70,9 @@ func (stk *stack) Pop() interface{} {
 	return nil
 }
 
-func (stk *stack) Peek() *node {
+func (stk *stack) Peek() interface{} {
 	if !stk.IsEmpty() {
-		return stk.Top
+		return stk.Top.Data
 	}
 
 	return nil

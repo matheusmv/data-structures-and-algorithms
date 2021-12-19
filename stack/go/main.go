@@ -12,7 +12,7 @@ type User struct {
 }
 
 func main() {
-	s := stack.Newstack()
+	s := stack.NewStack()
 
 	s.Push(User{"username 1", "password 1"})
 	s.Push(User{"username 2", "password 2"})
