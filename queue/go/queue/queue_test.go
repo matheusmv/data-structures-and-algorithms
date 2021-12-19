@@ -69,7 +69,7 @@ func TestIsEmpty(t *testing.T) {
 		t.Run("it should return false", func(t *testing.T) {
 			queue.Enqueue(student{"Student 1", 1})
 
-			assert.Equal(t, queue.IsEmpty(), false)
+			assert.False(t, queue.IsEmpty())
 		})
 	})
 
@@ -77,7 +77,7 @@ func TestIsEmpty(t *testing.T) {
 		t.Run("it should return true", func(t *testing.T) {
 			queue.Dequeue()
 
-			assert.Equal(t, queue.IsEmpty(), true)
+			assert.True(t, queue.IsEmpty())
 		})
 	})
 }
