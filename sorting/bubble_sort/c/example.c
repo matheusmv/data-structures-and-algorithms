@@ -1,27 +1,16 @@
 /**
- * gcc data_types.c bubble_sort.c example.c -o program
+ * gcc bubble_sort.c example.c -o program
  */
 #include "bubble_sort.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-object numbers[] = {
-        {._int = 55},
-        {._int = 17},
-        {._int = 2},
-        {._int = 28},
-        {._int = 10},
-        {._int = 18},
-        {._int = 32},
-        {._int = 1},
-        {._int = 3},
-        {._int = 44},
-};
+int numbers[] = { 55, 17, 2, 28, 10 ,18 ,32 ,1 ,3 ,44 };
 
-void show_array(object *array, size_t arr_len);
-int in_order(object a, object b);
-int reverse(object a, object b);
+void show_array(void *array, size_t arr_len);
+int in_order(void *a, void *b);
+int reverse(void *a, void *b);
 
 int main(int argc, char *argv[])
 {
@@ -29,36 +18,38 @@ int main(int argc, char *argv[])
 
         show_array(numbers, arr_len);
 
-        b_sort(numbers, arr_len, in_order);
+        b_sort(numbers, sizeof(numbers[0]), arr_len, in_order);
 
         show_array(numbers, arr_len);
 
-        b_sort(numbers, arr_len, reverse);
+        b_sort(numbers, sizeof(numbers[0]), arr_len, reverse);
 
         show_array(numbers, arr_len);
 
         return EXIT_SUCCESS;
 }
 
-void show_array(object *array, size_t arr_len)
+void show_array(void *array, size_t arr_len)
 {
+        int *arr = array;
+
         for (int i = 0; i < arr_len; i++)
-                printf("%d - ", array[i]._int);
+                printf("%d - ", arr[i]);
         printf("\n");
 }
 
-int in_order(object a, object b)
+int in_order(void *a, void *b)
 {
-        int value_a = a._int;
-        int value_b = b._int;
+        int *value_a = a;
+        int *value_b = b;
 
-        return value_a - value_b;
+        return *value_a - *value_b;
 }
 
-int reverse(object a, object b)
+int reverse(void *a, void *b)
 {
-        int value_a = a._int;
-        int value_b = b._int;
+        int *value_a = a;
+        int *value_b = b;
 
-        return value_b - value_a;
+        return *value_b - *value_a;
 }
