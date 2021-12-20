@@ -234,3 +234,23 @@ func (l *linkedList) Clear() {
 		l.length = 0
 	}
 }
+
+func (l *linkedList) Reverse() {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	if !l.IsEmpty() {
+		l.tail = l.head
+
+		var prev, next *node
+		current := l.head
+		for current != nil {
+			next = current.Next
+			current.Next = prev
+			prev = current
+			current = next
+		}
+
+		l.head = prev
+	}
+}

@@ -37,6 +37,10 @@ func main() {
 	fmt.Println(list.Getlength())
 	list.Show()
 
+	fmt.Println("Reversed:")
+	list.Reverse()
+	list.Show()
+
 	if value, err := list.Get(0); err != nil {
 		log.Fatal(err.Error())
 	} else {

@@ -311,3 +311,24 @@ func TestClear(t *testing.T) {
 		})
 	})
 }
+
+func TestReverse(t *testing.T) {
+	linkedList := NewLinkedList()
+
+	t.Run("when linkedlist is provided", func(t *testing.T) {
+		expectedLinkedList := NewLinkedList()
+		expectedLinkedList.InsertLast(student{1, "student 1"})
+		expectedLinkedList.InsertLast(student{2, "student 2"})
+		expectedLinkedList.InsertLast(student{3, "student 3"})
+
+		t.Run("it should reverse the linkedlist", func(t *testing.T) {
+			linkedList.InsertFirst(student{1, "student 1"})
+			linkedList.InsertFirst(student{2, "student 2"})
+			linkedList.InsertFirst(student{3, "student 3"})
+
+			linkedList.Reverse()
+
+			assert.Equal(t, linkedList, expectedLinkedList)
+		})
+	})
+}
