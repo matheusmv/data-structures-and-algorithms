@@ -1,12 +1,12 @@
 #include "linked_list.h"
 
 typedef struct __node {
-        struct object value;
+        void *value;
         struct __node *next;
 } node;
 
 typedef struct __linked_list {
-        int type;
+        size_t esize;
         size_t length;
         struct __node *head;
         struct __node *tail;
@@ -48,17 +48,29 @@ static node *get_node(linked_list *list, int index)
         return NULL;
 }
 
-linked_list *new_linked_list(int type)
+static void *copy_object(const void *obj, size_t obj_size)
 {
+        void *copy;
+
+        copy = malloc(obj_size);
+
+        memcpy(copy, obj, obj_size);
+
+        return copy;
+}
+
+linked_list *new_linked_list(size_t element_size)
+{
+        if (element_size == 0)
+                return NULL;
+
         linked_list *list = malloc(sizeof(linked_list));
 
         if (list == NULL)
                 return NULL;
 
-        const int list_type = get_object_type(type);
-
         *list = (linked_list) {
-                .type = list_type,
+                .esize = element_size,
                 .length = 0,
                 .head = NULL,
                 .tail = NULL,
@@ -77,7 +89,7 @@ bool is_empty(linked_list *list)
         return list->head == NULL;
 }
 
-void insert_first(linked_list *list, struct object object)
+void insert_first(linked_list *list, void *object)
 {
         if (list != NULL) {
                 node *new_node = malloc(sizeof(node));
@@ -87,8 +99,15 @@ void insert_first(linked_list *list, struct object object)
 
                         *new_node = (node) {
                                 .next = head,
-                                .value = object,
+                                .value = copy_object(object, list->esize),
                         };
+
+                        if (new_node->value == NULL) {
+                                fprintf(stderr, "***error creating object***\n");
+                                free(new_node);
+                                destroy_linked_list(list);
+                                exit(EXIT_FAILURE);
+                        }
 
                         if (list->tail == NULL)
                                 list->tail = new_node;
@@ -100,7 +119,7 @@ void insert_first(linked_list *list, struct object object)
         }
 }
 
-void insert_last(linked_list *list, struct object object)
+void insert_last(linked_list *list, void *object)
 {
         if (list != NULL) {
                 node *new_node = malloc(sizeof(node));
@@ -113,8 +132,15 @@ void insert_last(linked_list *list, struct object object)
 
                         *new_node = (node) {
                                 .next = NULL,
-                                .value = object,
+                                .value = copy_object(object, list->esize),
                         };
+
+                        if (new_node->value == NULL) {
+                                fprintf(stderr, "***error creating object***\n");
+                                free(new_node);
+                                destroy_linked_list(list);
+                                exit(EXIT_FAILURE);
+                        }
 
                         if (list->head == NULL)
                                 list->head = new_node;
@@ -126,7 +152,7 @@ void insert_last(linked_list *list, struct object object)
         }
 }
 
-void remove_first(linked_list *list)
+void remove_first(linked_list *list, void *buffer)
 {
         if (!is_empty(list)) {
                 node *head = list->head;
@@ -138,12 +164,16 @@ void remove_first(linked_list *list)
                         list->head = head->next;
                 }
 
+                if (buffer != NULL && head != NULL)
+                        memmove(buffer, head->value, list->esize);
+
                 decrease_list_length(list);
+                free(head->value);
                 free(head);
         }
 }
 
-void remove_last(linked_list *list)
+void remove_last(linked_list *list, void *buffer)
 {
         if (!is_empty(list)) {
                 const size_t list_length = list->length;
@@ -163,12 +193,16 @@ void remove_last(linked_list *list)
                         previous->next = NULL;
                 }
 
+                if (buffer != NULL && tail != NULL)
+                        memmove(buffer, tail->value, list->esize);
+
                 decrease_list_length(list);
+                free(tail->value);
                 free(tail);
         }
 }
 
-void insert_obj_at(linked_list *list, struct object object, int index)
+void insert_obj_at(linked_list *list, void *object, int index)
 {
         if (list != NULL) {
                 const size_t list_length = list->length;
@@ -193,8 +227,15 @@ void insert_obj_at(linked_list *list, struct object object, int index)
                         if (new_node != NULL) {
                                 *new_node = (node) {
                                         .next = current,
-                                        .value = object,
+                                        .value = copy_object(object, list->esize),
                                 };
+
+                                if (new_node->value == NULL) {
+                                        fprintf(stderr, "***error creating object***\n");
+                                        free(new_node);
+                                        destroy_linked_list(list);
+                                        exit(EXIT_FAILURE);
+                                }
 
                                 previous->next = new_node;
 
@@ -212,7 +253,6 @@ void *get_obj_at(linked_list *list, int index)
         if (!is_empty(list)) {
                 const size_t list_length = list->length;
                 const size_t list_end = list_length - 1;
-                const int list_type = list->type;
 
                 if (index > list_end || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
@@ -222,13 +262,13 @@ void *get_obj_at(linked_list *list, int index)
 
                 node *node = get_node(list, index);
 
-                return get_object(&node->value, list_type);
+                return node->value;
         }
 
         return NULL;
 }
 
-void remove_obj_at(linked_list *list, int index)
+void remove_obj_at(linked_list *list, int index, void *buffer)
 {
         if (!is_empty(list)) {
                 const size_t list_length = list->length;
@@ -241,22 +281,26 @@ void remove_obj_at(linked_list *list, int index)
                 }
 
                 if (index == 0) {
-                        remove_first(list);
+                        remove_first(list, buffer);
                 } else if (index == list_end) {
-                        remove_last(list);
+                        remove_last(list, buffer);
                 } else {
                         node *previous = get_node(list, index - 1);
                         node *current = previous->next;
 
                         previous->next = current->next;
 
+                        if (buffer != NULL && current != NULL)
+                                memmove(buffer, current->value, list->esize);
+
+                        free(current->value);
                         free(current);
                         decrease_list_length(list);
                 }
         }
 }
 
-void show_list(linked_list *list, void (*to_string)(struct object object), bool reverse)
+void show_list(linked_list *list, to_string_fn to_string, bool reverse)
 {
         if (!is_empty(list)) {
                 const size_t list_length = list->length;
@@ -266,10 +310,10 @@ void show_list(linked_list *list, void (*to_string)(struct object object), bool 
 
                 if (reverse) {
                         for (int i = start - 1; i >= end; i--)
-                                to_string(*(struct object *) get_obj_at(list, i));
+                                to_string(get_node(list, i)->value);
                 } else {
                         for (int i = start; i < end; i++)
-                                to_string(*(struct object *) get_obj_at(list, i));
+                                to_string(get_node(list, i)->value);
                 }
         }
 }
@@ -277,18 +321,8 @@ void show_list(linked_list *list, void (*to_string)(struct object object), bool 
 void destroy_linked_list(linked_list *list)
 {
         if (list != NULL) {
-                node *node;
-
-                while (!is_empty(list)) {
-                        node = list->head;
-                        list->head = node->next;
-                        free(node);
-                }
-
-                list->type = -1;
-                list->length = -1;
-                list->head = NULL;
-                list->tail = NULL;
+                while (!is_empty(list))
+                        remove_first(list, NULL);
 
                 free(list);
                 list = NULL;

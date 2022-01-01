@@ -1,7 +1,13 @@
 /**
- * gcc data_types.c linked_list.c example.c -o program
+ * gcc linked_list.c example.c -o program
  */
 #include "linked_list.h"
+
+struct student {
+        int id;
+        char *name;
+        float n1, n2, n3;
+};
 
 struct student students[] = {
         {.id = 1, .name = "student 1", .n1 = 5.2f, .n2 = 8.0f, .n3 = 7.2f},
@@ -11,19 +17,19 @@ struct student students[] = {
         {.id = 5, .name = "student 5", .n1 = 8.2f, .n2 = 7.9f, .n3 = 7.7f},
 };
 
-void show_students(struct object);
-void show_students_with_grades(struct object);
+void show_students(void *object);
+void show_students_with_grades(void *object);
 
 int main(int argc, char *argv[])
 {
-        linked_list *student_list = new_linked_list(STUDENT_TYPE);
+        linked_list *student_list = new_linked_list(sizeof(struct student));
 
         if (student_list == NULL)
                 return EXIT_FAILURE;
 
-        insert_last(student_list, (struct object) { ._student = students[4] });
-        insert_last(student_list, (struct object) { ._student = students[3] });
-        insert_last(student_list, (struct object) { ._student = students[2] });
+        insert_last(student_list, &students[4]);
+        insert_last(student_list, &students[3]);
+        insert_last(student_list, &students[2]);
 
         show_list(student_list, show_students, IN_ORDER);
         show_list(student_list, show_students_with_grades, REVERSE);
@@ -31,28 +37,30 @@ int main(int argc, char *argv[])
         const int student_arr_len = sizeof(students) / sizeof(struct student);
 
         for (int i = 0; i < student_arr_len; i++)
-                insert_first(student_list, (struct object) { ._student = students[i] });
+                insert_first(student_list, &students[i]);
 
         show_list(student_list, show_students, IN_ORDER);
 
-        remove_first(student_list);
-        remove_first(student_list);
+        remove_first(student_list, NULL);
+        remove_first(student_list, NULL);
 
         show_list(student_list, show_students, IN_ORDER);
 
-        struct student *result = get_obj_at(student_list, 2);
+        void *result = get_obj_at(student_list, 2);
+        if (result != NULL) {
+                printf("\tfound:\n");
+                show_students(result);
+                printf("\n");
+        }
 
-        if (result != NULL)
-                printf("%d - %s\n", result->id, result->name);
+        insert_obj_at(student_list, &students[4], 1);
 
-        insert_obj_at(student_list, (struct object) { ._student = students[4] }, 1);
-
-        remove_obj_at(student_list, 2);
+        remove_obj_at(student_list, 2, NULL);
 
         show_list(student_list, show_students, IN_ORDER);
 
-        remove_last(student_list);
-        remove_last(student_list);
+        remove_last(student_list, NULL);
+        remove_last(student_list, NULL);
 
         show_list(student_list, show_students, IN_ORDER);
         show_list(student_list, show_students_with_grades, IN_ORDER);
@@ -62,18 +70,18 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
 }
 
-void show_students(struct object obj)
+void show_students(void *obj)
 {
-        struct student result = obj._student;
+        struct student *result = obj;
 
-        printf("\t%d - %s\n", result.id, result.name);
+        printf("\t%d - %s\n", result->id, result->name);
 }
 
-void show_students_with_grades(struct object obj)
+void show_students_with_grades(void *obj)
 {
-        struct student result = obj._student;
+        struct student *result = obj;
 
         printf("\t%d - %s - %.2f - %.2f - %.2f\n",
-               result.id, result.name,
-               result.n1, result.n2, result.n3);
+               result->id, result->name,
+               result->n1, result->n2, result->n3);
 }
