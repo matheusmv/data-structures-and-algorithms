@@ -1,7 +1,8 @@
-/**
- * gcc binary_tree.c example.c -o program
- */
+#include <stdio.h>
+
 #include "binary_tree.h"
+
+#define ARR_LEN(ARR) (sizeof (ARR) / sizeof (ARR)[0])
 
 struct student {
         int id;
@@ -22,74 +23,74 @@ void show_students(void *);
 
 int main(int argc, char *argv[])
 {
-        binary_tree *student_tree = new_binary_tree(sizeof(struct student));
+        binary_tree *student_tree = binary_tree_create(sizeof(struct student));
 
         if (student_tree == NULL)
                 return EXIT_FAILURE;
 
-        const int student_arr_len = sizeof(students) / sizeof(struct student);
-
-        for (int i = 0; i < student_arr_len; i++)
-                insert_obj(student_tree, &students[i], compare_by_id);
+        for (int i = 0; i < ARR_LEN(students); i++)
+                binary_tree_insert(student_tree, &students[i], compare_by_id);
 
         printf("Pre Order:\n");
-        show_binary_tree(student_tree, PRE_ORDER, show_students);
+        binary_tree_show(student_tree, PRE_ORDER, show_students);
 
         printf("In Order:\n");
-        show_binary_tree(student_tree, IN_ORDER, show_students);
+        binary_tree_show(student_tree, IN_ORDER, show_students);
 
         printf("Post Order:\n");
-        show_binary_tree(student_tree, POST_ORDER, show_students);
+        binary_tree_show(student_tree, POST_ORDER, show_students);
 
         void *result;
-        result = search_obj(student_tree, &students[0], compare_by_id);
+        result = binary_tree_search_obj(student_tree, &students[0], compare_by_id);
         if (result != NULL) {
                 printf("*** \tfound: ");
                 show_students(result);
         }
 
         struct student sresult;
-        if (find_and_remove_obj(student_tree, &students[0], compare_by_id, &sresult) == 0) {
+        if (binary_tree_remove_obj(student_tree, &students[0], compare_by_id, &sresult) == 0) {
                 printf("*** \tremoved: ");
                 show_students(&sresult);
         }
 
-        if (remove_obj(student_tree, &sresult) == 0) {
+        if (binary_tree_remove(student_tree, &sresult) == 0) {
                 printf("*** \tremoved: ");
                 show_students(&sresult);
         }
 
-        if (remove_obj(student_tree, &sresult) == 0) {
+        if (binary_tree_remove(student_tree, &sresult) == 0) {
                 printf("*** \tremoved: ");
                 show_students(&sresult);
         }
 
-        result = search_obj(student_tree, &students[0], compare_by_id);
+        result = binary_tree_search_obj(student_tree, &students[0], compare_by_id);
         if (result != NULL) {
                 printf("*** \tfound: ");
                 show_students(result);
         }
 
         printf("Pre Order:\n");
-        show_binary_tree(student_tree, PRE_ORDER, show_students);
+        binary_tree_show(student_tree, PRE_ORDER, show_students);
 
         printf("In Order:\n");
-        show_binary_tree(student_tree, IN_ORDER, show_students);
+        binary_tree_show(student_tree, IN_ORDER, show_students);
 
         printf("Post Order:\n");
-        show_binary_tree(student_tree, POST_ORDER, show_students);
+        binary_tree_show(student_tree, POST_ORDER, show_students);
 
-        destroy_binary_tree(student_tree);
+        binary_tree_free(student_tree);
 
         return EXIT_SUCCESS;
 }
 
-static float grade_average(float n1, float n2, float n3)
+static float
+grade_average(float n1, float n2, float n3)
 {
         return (n1 + n2 + n3) / 3.0F;
 }
 
-int compare_by_id(void *a, void *b)
+int
+compare_by_id(void *a, void *b)
 {
         struct student *studentA = a;
         struct student *studentB = b;
@@ -97,7 +98,8 @@ int compare_by_id(void *a, void *b)
         return studentA->id - studentB->id;
 }
 
-void show_students(void *obj)
+void
+show_students(void *obj)
 {
         struct student *student = obj;
 
