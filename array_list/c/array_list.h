@@ -1,30 +1,24 @@
-#ifndef _ARRAY_LIST
-#define _ARRAY_LIST
+#ifndef _ARRAY_LIST_H
+#define _ARRAY_LIST_H
 
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
-
-#define GETSTDERROR() (strerror(errno))
 
 #define REVERSE true
 #define IN_ORDER false
 
-typedef struct __array_list array_list;
+typedef struct array_list array_list;
 
-typedef void (*__to_string_fn)(void *object);
-typedef __to_string_fn to_string_fn;
+typedef void (*to_string_fn)(void *object);
 
-array_list *new_array_list(size_t array_size, size_t element_size);
-size_t get_length(array_list *array);
-void append_obj(array_list *array, void *object);
-int remove_obj(array_list *array, void *buffer);
-void add_obj_at(array_list *array, void *object, int index);
-int get_obj_at(array_list *array, int index, void *buffer);
-int remove_obj_at(array_list *array, int index, void *buffer);
-void show_array(array_list *array, to_string_fn to_string, bool reverse);
-void destroy_array_list(array_list *array);
+array_list *array_list_create(size_t array_size, size_t element_size);
+size_t array_list_length(array_list *array);
+void array_list_append(array_list *array, void *object);
+void array_list_append_at(array_list *array, void *object, int index);
+int array_list_remove(array_list *array, void *buffer);
+int array_list_find_at(array_list *array, int index, void *buffer);
+int array_list_remove_at(array_list *array, int index, void *buffer);
+void array_list_show(array_list *array, to_string_fn to_string, bool reverse);
+void array_list_free(array_list *array);
 
 #endif

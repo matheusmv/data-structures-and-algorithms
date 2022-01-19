@@ -1,13 +1,21 @@
 #include "array_list.h"
 
-typedef struct __array_list {
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+
+typedef struct array_list array_list;
+struct array_list {
         void *array;
         size_t esize;
         size_t size;
         size_t length;
-} array_list;
+};
 
-static void increase_array_length(array_list *arr_list)
+#define GETSTDERROR() (strerror(errno))
+
+static void
+increase_array_length(array_list *arr_list)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_size = arr_list->size;
@@ -16,7 +24,8 @@ static void increase_array_length(array_list *arr_list)
                 arr_list->length += 1;
 }
 
-static void decrease_array_length(array_list *arr_list)
+static void
+decrease_array_length(array_list *arr_list)
 {
         const size_t arr_length = arr_list->length;
 
@@ -24,12 +33,14 @@ static void decrease_array_length(array_list *arr_list)
                 arr_list->length -= 1;
 }
 
-static void *get_index(void *array, size_t size, int index)
+static void *
+get_index(void *array, size_t size, int index)
 {
         return (void *) (((char *) array) + index * size);
 }
 
-static void increase_array_size(array_list *arr_list)
+static void
+increase_array_size(array_list *arr_list)
 {
         const size_t SCALING_FACTOR = 2;
         const size_t obj_size = arr_list->esize;
@@ -43,7 +54,7 @@ static void increase_array_size(array_list *arr_list)
 
         if (arr_list->array == NULL) {
                 fprintf(stderr, "realloc() failed. (%s)\n", GETSTDERROR());
-                destroy_array_list(arr_list);
+                array_list_free(arr_list);
                 exit(EXIT_FAILURE);
         }
 
@@ -55,7 +66,8 @@ static void increase_array_size(array_list *arr_list)
         arr_list->size = new_arr_size;
 }
 
-array_list *new_array_list(size_t arr_size, size_t element_size)
+array_list *
+array_list_create(size_t arr_size, size_t element_size)
 {
         array_list *arr_list = malloc(sizeof(array_list));
 
@@ -81,17 +93,20 @@ array_list *new_array_list(size_t arr_size, size_t element_size)
         return arr_list;
 }
 
-size_t get_size(array_list *arr_list)
+size_t
+array_list_size(array_list *arr_list)
 {
         return arr_list->size;
 }
 
-size_t get_length(array_list *arr_list)
+size_t
+array_list_length(array_list *arr_list)
 {
         return arr_list->length;
 }
 
-void append_obj(array_list *arr_list, void *object)
+void
+array_list_append(array_list *arr_list, void *object)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_size = arr_list->size - 1;
@@ -106,7 +121,37 @@ void append_obj(array_list *arr_list, void *object)
         increase_array_length(arr_list);
 }
 
-int remove_obj(array_list *arr_list, void *buffer)
+void
+array_list_append_at(array_list *arr_list, void *object, int index)
+{
+        const size_t arr_length = arr_list->length;
+        const size_t arr_end = arr_length - 1;
+        const size_t arr_size = arr_list->size - 1;
+        const size_t obj_size = arr_list->esize;
+
+        if (index > arr_length || index < 0) {
+                fprintf(stderr, "***index [%d] out of bounds***\n", index);
+                array_list_free(arr_list);
+                exit(EXIT_FAILURE);
+        }
+
+        if (arr_length == arr_size)
+                increase_array_size(arr_list);
+
+        for (int i = arr_end; i >= index; i--) {
+                void *next = get_index(arr_list->array, obj_size, (i + 1));
+                void *prev = get_index(arr_list->array, obj_size, i);
+                memmove(next, prev, obj_size);
+        }
+
+        void *pos = get_index(arr_list->array, obj_size, index);
+        memmove(pos, object, obj_size);
+
+        increase_array_length(arr_list);
+}
+
+int
+array_list_remove(array_list *arr_list, void *buffer)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_end = arr_length - 1;
@@ -127,35 +172,8 @@ int remove_obj(array_list *arr_list, void *buffer)
         return -1;
 }
 
-void add_obj_at(array_list *arr_list, void *object, int index)
-{
-        const size_t arr_length = arr_list->length;
-        const size_t arr_end = arr_length - 1;
-        const size_t arr_size = arr_list->size - 1;
-        const size_t obj_size = arr_list->esize;
-
-        if (index > arr_length || index < 0) {
-                fprintf(stderr, "***index [%d] out of bounds***\n", index);
-                destroy_array_list(arr_list);
-                exit(EXIT_FAILURE);
-        }
-
-        if (arr_length == arr_size)
-                increase_array_size(arr_list);
-
-        for (int i = arr_end; i >= index; i--) {
-                void *next = get_index(arr_list->array, obj_size, (i + 1));
-                void *prev = get_index(arr_list->array, obj_size, i);
-                memmove(next, prev, obj_size);
-        }
-
-        void *pos = get_index(arr_list->array, obj_size, index);
-        memmove(pos, object, obj_size);
-
-        increase_array_length(arr_list);
-}
-
-int get_obj_at(array_list *arr_list, int index, void *buffer)
+int
+array_list_find_at(array_list *arr_list, int index, void *buffer)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_end = arr_length - 1;
@@ -163,7 +181,7 @@ int get_obj_at(array_list *arr_list, int index, void *buffer)
 
         if (index > arr_end || index < 0) {
                 fprintf(stderr, "***index [%d] out of bounds***\n", index);
-                destroy_array_list(arr_list);
+                array_list_free(arr_list);
                 exit(EXIT_FAILURE);
         }
 
@@ -179,7 +197,8 @@ int get_obj_at(array_list *arr_list, int index, void *buffer)
         return -1;
 }
 
-int remove_obj_at(array_list *arr_list, int index, void *buffer)
+int
+array_list_remove_at(array_list *arr_list, int index, void *buffer)
 {
         const size_t arr_length = arr_list->length;
         const size_t arr_end = arr_length - 1;
@@ -187,13 +206,13 @@ int remove_obj_at(array_list *arr_list, int index, void *buffer)
 
         if (index > arr_end || index < 0) {
                 fprintf(stderr, "***index [%d] out of bounds***\n", index);
-                destroy_array_list(arr_list);
+                array_list_free(arr_list);
                 exit(EXIT_FAILURE);
         }
 
         if (arr_length > 0) {
                 if (index == arr_end)
-                        return remove_obj(arr_list, buffer);
+                        return array_list_remove(arr_list, buffer);
 
                 void *obj = get_index(arr_list->array, obj_size, index);
 
@@ -217,7 +236,8 @@ int remove_obj_at(array_list *arr_list, int index, void *buffer)
         return -1;
 }
 
-void show_array(array_list *arr_list, to_string_fn to_string, bool reverse)
+void
+array_list_show(array_list *arr_list, to_string_fn to_string, bool reverse)
 {
         const size_t arr_length = arr_list->length;
         const size_t obj_size = arr_list->esize;
@@ -236,15 +256,18 @@ void show_array(array_list *arr_list, to_string_fn to_string, bool reverse)
         }
 }
 
-void destroy_array_list(array_list *arr_list)
+void
+array_list_free(array_list *arr_list)
 {
         if (arr_list != NULL) {
                 if (arr_list->array != NULL) {
                         free(arr_list->array);
                         arr_list->array = NULL;
-                        arr_list->size = -1;
-                        arr_list->length = -1;
                 }
+
+                arr_list->esize = 0;
+                arr_list->length = 0;
+                arr_list->size = 0;
 
                 free(arr_list);
                 arr_list = NULL;
