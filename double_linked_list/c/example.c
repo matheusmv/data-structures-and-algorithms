@@ -1,7 +1,15 @@
-/**
- * gcc data_types.c double_linked_list.c example.c -o program
- */
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "double_linked_list.h"
+
+#define ARR_LEN(ARR) (sizeof (ARR) / sizeof (ARR)[0])
+
+struct student {
+        int id;
+        char *name;
+        float n1, n2, n3;
+};
 
 struct student students[] = {
         {.id = 1, .name = "student 1", .n1 = 5.2f, .n2 = 8.0f, .n3 = 7.2f},
@@ -11,72 +19,72 @@ struct student students[] = {
         {.id = 5, .name = "student 5", .n1 = 8.2f, .n2 = 7.9f, .n3 = 7.7f},
 };
 
-void show_students(struct object);
-void show_students_with_grades(struct object);
+void show_students(void *object);
+void show_students_with_grades(void *object);
 
 int main(int argc, char *argv[])
 {
-        double_linked_list *student_list = new_double_linked_list(STUDENT_TYPE);
+        double_linked_list *student_list = double_linked_list_create(sizeof(struct student));
 
         if (student_list == NULL)
                 return EXIT_FAILURE;
 
-        const int student_arr_len = sizeof(students) / sizeof(struct student);
+        for (int i = 0; i < ARR_LEN(students); i++)
+                double_linked_list_insert_first(student_list, &students[i]);
 
-        for (int i = 0; i < student_arr_len; i++)
-                insert_first(student_list, (struct object) { ._student = students[i] });
+        double_linked_list_show(student_list, show_students, IN_ORDER);
+        double_linked_list_show(student_list, show_students, REVERSE);
 
-        show_list(student_list, show_students, IN_ORDER);
-        show_list(student_list, show_students, REVERSE);
+        double_linked_list_remove_first(student_list, NULL);
+        double_linked_list_remove_first(student_list, NULL);
 
-        remove_first(student_list);
-        remove_first(student_list);
+        double_linked_list_show(student_list, show_students_with_grades, IN_ORDER);
 
-        show_list(student_list, show_students_with_grades, IN_ORDER);
+        struct student *result = double_linked_list_get_obj_at(student_list, 2);
+        if (result != NULL) {
+                printf("\tfound:\n");
+                show_students(result);
+                printf("\n");
+        }
 
-        struct student *result = get_obj_at(student_list, 2);
+        double_linked_list_insert_obj_at(student_list, &students[4], 0);
+        double_linked_list_insert_obj_at(student_list, &students[4], 2);
+        double_linked_list_insert_obj_at(student_list, &students[4], 4);
 
-        if (result != NULL)
-                printf("%d - %s\n", result->id, result->name);
+        double_linked_list_show(student_list, show_students_with_grades, IN_ORDER);
 
-        insert_obj_at(student_list, (struct object) { ._student = students[4] }, 0);
-        insert_obj_at(student_list, (struct object) { ._student = students[4] }, 2);
-        insert_obj_at(student_list, (struct object) { ._student = students[4] }, 4);
+        double_linked_list_remove_last(student_list, NULL);
+        double_linked_list_remove_last(student_list, NULL);
 
-        show_list(student_list, show_students_with_grades, IN_ORDER);
+        double_linked_list_show(student_list, show_students_with_grades, IN_ORDER);
 
-        remove_last(student_list);
-        remove_last(student_list);
+        double_linked_list_remove_obj_at(student_list, 0, NULL);
+        double_linked_list_remove_obj_at(student_list, 1, NULL);
 
-        show_list(student_list, show_students_with_grades, IN_ORDER);
+        double_linked_list_show(student_list, show_students_with_grades, IN_ORDER);
 
-        remove_obj_at(student_list, 0);
-        remove_obj_at(student_list, 1);
+        double_linked_list_insert_first(student_list, &students[0]);
+        double_linked_list_insert_last(student_list, &students[0]);
 
-        show_list(student_list, show_students_with_grades, IN_ORDER);
+        double_linked_list_show(student_list, show_students_with_grades, IN_ORDER);
 
-        insert_first(student_list, (struct object) { ._student = students[0] });
-        insert_last(student_list, (struct object) { ._student = students[0] });
-
-        show_list(student_list, show_students_with_grades, IN_ORDER);
-
-        destroy_double_linked_list(student_list);
+        double_linked_list_free(student_list);
 
         return EXIT_SUCCESS;
 }
 
-void show_students(struct object obj)
+void show_students(void *obj)
 {
-        struct student result = obj._student;
+        struct student *result = obj;
 
-        printf("\t%d - %s\n", result.id, result.name);
+        printf("\t%d - %s\n", result->id, result->name);
 }
 
-void show_students_with_grades(struct object obj)
+void show_students_with_grades(void *obj)
 {
-        struct student result = obj._student;
+        struct student *result = obj;
 
         printf("\t%d - %s - %.2f - %.2f - %.2f\n",
-               result.id, result.name,
-               result.n1, result.n2, result.n3);
+               result->id, result->name,
+               result->n1, result->n2, result->n3);
 }

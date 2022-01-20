@@ -1,24 +1,34 @@
 #include "double_linked_list.h"
 
-typedef struct __node {
-        struct object value;
-        struct __node *prev;
-        struct __node *next;
-} node;
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
 
-typedef struct __double_linked_list {
-        int type;
+typedef struct node node;
+struct node {
+        void *value;
+        node *prev;
+        node *next;
+};
+
+typedef struct double_linked_list double_linked_list;
+struct double_linked_list {
+        size_t esize;
         size_t length;
-        struct __node *head;
-        struct __node *tail;
-} double_linked_list;
+        node *head;
+        node *tail;
+};
 
-static void increase_list_length(double_linked_list *list)
+#define GETSTDERROR() (strerror(errno))
+
+static void
+increase_list_length(double_linked_list *list)
 {
         list->length += 1;
 }
 
-static void decrease_list_length(double_linked_list *list)
+static void
+decrease_list_length(double_linked_list *list)
 {
         const size_t list_length = list->length;
 
@@ -26,15 +36,16 @@ static void decrease_list_length(double_linked_list *list)
                 list->length -= 1;
 }
 
-static node *get_node(double_linked_list *list, int index)
+static node *
+get_node(double_linked_list *list, int index)
 {
-        if (!is_empty(list)) {
+        if (!double_linked_list_is_empty(list)) {
                 const size_t list_length = list->length;
                 const size_t list_end = list_length - 1;
 
                 if (index > list_end || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
-                        destroy_double_linked_list(list);
+                        double_linked_list_free(list);
                         exit(EXIT_FAILURE);
                 }
 
@@ -49,17 +60,32 @@ static node *get_node(double_linked_list *list, int index)
         return NULL;
 }
 
-double_linked_list *new_double_linked_list(int type)
+static void *
+copy_object(const void *obj, size_t obj_size)
 {
+        void *copy;
+
+        copy = malloc(obj_size);
+
+        memcpy(copy, obj, obj_size);
+
+        return copy;
+}
+
+double_linked_list *
+double_linked_list_create(size_t element_size)
+{
+        if (element_size == 0)
+                return NULL;
+
         double_linked_list *list = malloc(sizeof(double_linked_list));
 
         if (list == NULL)
                 return NULL;
 
-        const int list_type = get_object_type(type);
 
         *list = (double_linked_list) {
-                .type = list_type,
+                .esize = element_size,
                 .length = 0,
                 .head = NULL,
                 .tail = NULL,
@@ -68,17 +94,20 @@ double_linked_list *new_double_linked_list(int type)
         return list;
 }
 
-size_t get_length(double_linked_list *list)
+size_t
+double_linked_list_length(double_linked_list *list)
 {
         return list->length;
 }
 
-bool is_empty(double_linked_list *list)
+bool
+double_linked_list_is_empty(double_linked_list *list)
 {
         return list->head == NULL;
 }
 
-void insert_first(double_linked_list *list, struct object object)
+void
+double_linked_list_insert_first(double_linked_list *list, void *object)
 {
         if (list != NULL) {
                 node *new_node = malloc(sizeof(node));
@@ -86,14 +115,21 @@ void insert_first(double_linked_list *list, struct object object)
                 if (new_node != NULL) {
                         node *head = list->head;
 
-                        if (!is_empty(list))
+                        if (!double_linked_list_is_empty(list))
                                 head->prev = new_node;
 
                         *new_node = (node) {
                                 .prev = NULL,
                                 .next = head,
-                                .value = object,
+                                .value = copy_object(object, list->esize)
                         };
+
+                        if (new_node->value == NULL) {
+                                fprintf(stderr, "***error creating object***\n");
+                                free(new_node);
+                                double_linked_list_free(list);
+                                exit(EXIT_FAILURE);
+                        }
 
                         if (list->tail == NULL)
                                 list->tail = new_node;
@@ -105,7 +141,8 @@ void insert_first(double_linked_list *list, struct object object)
         }
 }
 
-void insert_last(double_linked_list *list, struct object object)
+void
+double_linked_list_insert_last(double_linked_list *list, void *object)
 {
         if (list != NULL) {
                 node *new_node = malloc(sizeof(node));
@@ -113,14 +150,21 @@ void insert_last(double_linked_list *list, struct object object)
                 if (new_node != NULL) {
                         node *tail = list->tail;
 
-                        if (!is_empty(list))
+                        if (!double_linked_list_is_empty(list))
                                 tail->next = new_node;
 
                         *new_node = (node) {
                                 .prev = tail,
                                 .next = NULL,
-                                .value = object,
+                                .value = copy_object(object, list->esize),
                         };
+
+                        if (new_node->value == NULL) {
+                                fprintf(stderr, "***error creating object***\n");
+                                free(new_node);
+                                double_linked_list_free(list);
+                                exit(EXIT_FAILURE);
+                        }
 
                         if (list->head == NULL)
                                 list->head = new_node;
@@ -132,12 +176,13 @@ void insert_last(double_linked_list *list, struct object object)
         }
 }
 
-void remove_first(double_linked_list *list)
+void
+double_linked_list_remove_first(double_linked_list *list, void *buffer)
 {
-        if (!is_empty(list)) {
+        if (!double_linked_list_is_empty(list)) {
                 node *head = list->head;
 
-                if (get_length(list) == 1) {
+                if (double_linked_list_length(list) == 1) {
                         list->head = NULL;
                         list->tail = NULL;
                 } else {
@@ -145,17 +190,22 @@ void remove_first(double_linked_list *list)
                         list->head->prev = NULL;
                 }
 
+                if (buffer != NULL && head != NULL)
+                        memmove(buffer, head->value, list->esize);
+
                 decrease_list_length(list);
+                free(head->value);
                 free(head);
         }
 }
 
-void remove_last(double_linked_list *list)
+void
+double_linked_list_remove_last(double_linked_list *list, void *buffer)
 {
-        if (!is_empty(list)) {
+        if (!double_linked_list_is_empty(list)) {
                 node *tail = list->tail;
 
-                if (get_length(list) == 1) {
+                if (double_linked_list_length(list) == 1) {
                         list->head = NULL;
                         list->tail = NULL;
                 } else {
@@ -163,12 +213,17 @@ void remove_last(double_linked_list *list)
                         list->tail->next = NULL;
                 }
 
+                if (buffer != NULL && tail != NULL)
+                        memmove(buffer, tail->value, list->esize);
+
                 decrease_list_length(list);
+                free(tail->value);
                 free(tail);
         }
 }
 
-void insert_obj_at(double_linked_list *list, struct object object, int index)
+void
+double_linked_list_insert_obj_at(double_linked_list *list, void *object, int index)
 {
         if (list != NULL) {
                 const size_t list_length = list->length;
@@ -176,14 +231,14 @@ void insert_obj_at(double_linked_list *list, struct object object, int index)
 
                 if (index > list_length || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
-                        destroy_double_linked_list(list);
+                        double_linked_list_free(list);
                         exit(EXIT_FAILURE);
                 }
 
                 if (index == 0) {
-                        insert_first(list, object);
+                        double_linked_list_insert_first(list, object);
                 } else if (index == list_end) {
-                        insert_last(list, object);
+                        double_linked_list_insert_last(list, object);
                 } else {
                         node *current = get_node(list, index);
                         node *previous = current->prev;
@@ -194,8 +249,15 @@ void insert_obj_at(double_linked_list *list, struct object object, int index)
                                 *new_node = (node) {
                                         .prev = previous,
                                         .next = current,
-                                        .value = object,
+                                        .value = copy_object(object, list->esize)
                                 };
+
+                                if (new_node->value == NULL) {
+                                        fprintf(stderr, "***error creating object***\n");
+                                        free(new_node);
+                                        double_linked_list_free(list);
+                                        exit(EXIT_FAILURE);
+                                }
 
                                 previous->next = new_node;
                                 current->prev = new_node;
@@ -209,43 +271,44 @@ void insert_obj_at(double_linked_list *list, struct object object, int index)
         }
 }
 
-void *get_obj_at(double_linked_list *list, int index)
+void *
+double_linked_list_get_obj_at(double_linked_list *list, int index)
 {
-        if (!is_empty(list)) {
+        if (!double_linked_list_is_empty(list)) {
                 const size_t list_length = list->length;
                 const size_t list_end = list_length - 1;
-                const int list_type = list->type;
 
                 if (index > list_end || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
-                        destroy_double_linked_list(list);
+                        double_linked_list_free(list);
                         exit(EXIT_FAILURE);
                 }
 
                 node *node = get_node(list, index);
 
-                return get_object(&node->value, list_type);
+                return node->value;
         }
 
         return NULL;
 }
 
-void remove_obj_at(double_linked_list *list, int index)
+void
+double_linked_list_remove_obj_at(double_linked_list *list, int index, void *buffer)
 {
-        if (!is_empty(list)) {
+        if (!double_linked_list_is_empty(list)) {
                 const size_t list_length = list->length;
                 const size_t list_end = list_length - 1;
 
                 if (index > list_end || index < 0) {
                         fprintf(stderr, "***index [%d] out of bounds***\n", index);
-                        destroy_double_linked_list(list);
+                        double_linked_list_free(list);
                         exit(EXIT_FAILURE);
                 }
 
                 if (index == 0) {
-                        remove_first(list);
+                        double_linked_list_remove_first(list, buffer);
                 } else if (index == list_end) {
-                        remove_last(list);
+                        double_linked_list_remove_last(list, buffer);
                 } else {
                         node *current = get_node(list, index);
                         node *previous = current->prev;
@@ -254,15 +317,20 @@ void remove_obj_at(double_linked_list *list, int index)
                         previous->next = next;
                         next->prev = previous;
 
+                        if (buffer != NULL && current != NULL)
+                                memmove(buffer, current->value, list->esize);
+
+                        free(current->value);
                         free(current);
                         decrease_list_length(list);
                 }
         }
 }
 
-void show_list(double_linked_list *list, void (*to_string)(struct object object), bool reverse)
+void
+double_linked_list_show(double_linked_list *list, to_string_fn to_string, bool reverse)
 {
-        if (!is_empty(list)) {
+        if (!double_linked_list_is_empty(list)) {
                 const size_t list_length = list->length;
 
                 int start = reverse ? list_length : 0;
@@ -270,29 +338,23 @@ void show_list(double_linked_list *list, void (*to_string)(struct object object)
 
                 if (reverse) {
                         for (int i = start - 1; i >= end; i--)
-                                to_string(*(struct object *) get_obj_at(list, i));
+                                to_string(get_node(list, i)->value);
                 } else {
                         for (int i = start; i < end; i++)
-                                to_string(*(struct object *) get_obj_at(list, i));
+                                to_string(get_node(list, i)->value);
                 }
         }
 }
 
-void destroy_double_linked_list(double_linked_list *list)
+void
+double_linked_list_free(double_linked_list *list)
 {
         if (list != NULL) {
-                node *node;
+                while (!double_linked_list_is_empty(list))
+                        double_linked_list_remove_first(list, NULL);
 
-                while (!is_empty(list)) {
-                        node = list->head;
-                        list->head = node->next;
-                        free(node);
-                }
-
-                list->type = -1;
-                list->length = -1;
-                list->head = NULL;
-                list->tail = NULL;
+                list->esize = 0;
+                list->length = 0;
 
                 free(list);
                 list = NULL;
