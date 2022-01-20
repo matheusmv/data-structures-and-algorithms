@@ -1,7 +1,9 @@
-/**
- * gcc linked_list.c example.c -o program
- */
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "linked_list.h"
+
+#define ARR_LEN(ARR) (sizeof (ARR) / sizeof (ARR)[0])
 
 struct student {
         int id;
@@ -22,50 +24,48 @@ void show_students_with_grades(void *object);
 
 int main(int argc, char *argv[])
 {
-        linked_list *student_list = new_linked_list(sizeof(struct student));
+        linked_list *student_list = linked_list_create(sizeof(struct student));
 
         if (student_list == NULL)
                 return EXIT_FAILURE;
 
-        insert_last(student_list, &students[4]);
-        insert_last(student_list, &students[3]);
-        insert_last(student_list, &students[2]);
+        linked_list_insert_last(student_list, &students[4]);
+        linked_list_insert_last(student_list, &students[3]);
+        linked_list_insert_last(student_list, &students[2]);
 
-        show_list(student_list, show_students, IN_ORDER);
-        show_list(student_list, show_students_with_grades, REVERSE);
+        linked_list_show(student_list, show_students, IN_ORDER);
+        linked_list_show(student_list, show_students_with_grades, REVERSE);
 
-        const int student_arr_len = sizeof(students) / sizeof(struct student);
+        for (int i = 0; i < ARR_LEN(students); i++)
+                linked_list_insert_first(student_list, &students[i]);
 
-        for (int i = 0; i < student_arr_len; i++)
-                insert_first(student_list, &students[i]);
+        linked_list_show(student_list, show_students, IN_ORDER);
 
-        show_list(student_list, show_students, IN_ORDER);
+        linked_list_remove_first(student_list, NULL);
+        linked_list_remove_first(student_list, NULL);
 
-        remove_first(student_list, NULL);
-        remove_first(student_list, NULL);
+        linked_list_show(student_list, show_students, IN_ORDER);
 
-        show_list(student_list, show_students, IN_ORDER);
-
-        void *result = get_obj_at(student_list, 2);
+        void *result = linked_list_get_obj_at(student_list, 2);
         if (result != NULL) {
                 printf("\tfound:\n");
                 show_students(result);
                 printf("\n");
         }
 
-        insert_obj_at(student_list, &students[4], 1);
+        linked_list_insert_obj_at(student_list, &students[4], 1);
 
-        remove_obj_at(student_list, 2, NULL);
+        linked_list_remove_obj_at(student_list, 2, NULL);
 
-        show_list(student_list, show_students, IN_ORDER);
+        linked_list_show(student_list, show_students, IN_ORDER);
 
-        remove_last(student_list, NULL);
-        remove_last(student_list, NULL);
+        linked_list_remove_last(student_list, NULL);
+        linked_list_remove_last(student_list, NULL);
 
-        show_list(student_list, show_students, IN_ORDER);
-        show_list(student_list, show_students_with_grades, IN_ORDER);
+        linked_list_show(student_list, show_students, IN_ORDER);
+        linked_list_show(student_list, show_students_with_grades, IN_ORDER);
 
-        destroy_linked_list(student_list);
+        linked_list_free(student_list);
 
         return EXIT_SUCCESS;
 }
