@@ -1,14 +1,22 @@
 #include "priority_queue.h"
 
-typedef struct __priority_queue {
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+
+typedef struct priority_queue priority_queue;
+struct priority_queue {
         void *array;
         size_t esize;
         size_t size;
         size_t length;
         compare_obj_fn comparator;
-} priority_queue;
+};
 
-static void increase_array_length(priority_queue *queue)
+#define GETSTDERROR() (strerror(errno))
+
+static void
+increase_array_length(priority_queue *queue)
 {
         const size_t arr_length = queue->length;
         const size_t arr_size = queue->size;
@@ -17,7 +25,8 @@ static void increase_array_length(priority_queue *queue)
                 queue->length += 1;
 }
 
-static void decrease_array_length(priority_queue *queue)
+static void
+decrease_array_length(priority_queue *queue)
 {
         const size_t arr_length = queue->length;
 
@@ -25,12 +34,14 @@ static void decrease_array_length(priority_queue *queue)
                 queue->length -= 1;
 }
 
-static void *get_index(void *array, size_t size, int index)
+static void *
+get_index(void *array, size_t size, int index)
 {
         return (void *) (((char *) array) + index * size);
 }
 
-static void increase_array_size(priority_queue *queue)
+static void
+increase_array_size(priority_queue *queue)
 {
         const size_t SCALING_FACTOR = 2;
         const size_t obj_size = queue->esize;
@@ -44,7 +55,7 @@ static void increase_array_size(priority_queue *queue)
 
         if (queue->array == NULL) {
                 fprintf(stderr, "realloc() failed. (%s)\n", GETSTDERROR());
-                destroy_priority_queue(queue);
+                priority_queue_free(queue);
                 exit(EXIT_FAILURE);
         }
 
@@ -56,7 +67,8 @@ static void increase_array_size(priority_queue *queue)
         queue->size = new_arr_size;
 }
 
-priority_queue *new_priority_queue(size_t size, size_t element_size, compare_obj_fn comparator)
+priority_queue *
+priority_queue_create(size_t size, size_t element_size, compare_obj_fn comparator)
 {
         priority_queue *queue = malloc(sizeof(priority_queue));
 
@@ -83,12 +95,14 @@ priority_queue *new_priority_queue(size_t size, size_t element_size, compare_obj
         return queue;
 }
 
-size_t get_length(priority_queue *queue)
+size_t
+priority_queue_length(priority_queue *queue)
 {
         return queue->length;
 }
 
-static void swap(void *a, void *b, size_t size)
+static void
+swap(void *a, void *b, size_t size)
 {
         unsigned char aux, *aux_a, *aux_b;
 
@@ -102,9 +116,10 @@ static void swap(void *a, void *b, size_t size)
         }
 }
 
-static void heapify(void *array, size_t size, size_t arr_size, int index, compare_obj_fn comparator)
+static void
+heapify(void *array, size_t size, size_t arr_size, int index, compare_obj_fn comparator)
 {
-        if (arr_size <= 1)
+        if (arr_size < 0)
                 return;
 
         int smaller = index;
@@ -127,7 +142,8 @@ static void heapify(void *array, size_t size, size_t arr_size, int index, compar
         }
 }
 
-void enqueue(priority_queue *queue, void *object)
+void
+priority_queue_enqueue(priority_queue *queue, void *object)
 {
         const size_t arr_length = queue->length;
         const size_t arr_end = arr_length - 1;
@@ -146,7 +162,8 @@ void enqueue(priority_queue *queue, void *object)
                 heapify(queue->array, obj_size, arr_end, i, queue->comparator);
 }
 
-int dequeue(priority_queue *queue, void *buffer)
+int
+priority_queue_dequeue(priority_queue *queue, void *buffer)
 {
         const size_t arr_length = queue->length;
         const size_t arr_end = arr_length - 1;
@@ -173,7 +190,8 @@ int dequeue(priority_queue *queue, void *buffer)
         return -1;
 }
 
-void *peek(priority_queue *queue)
+void *
+priority_queue_peek(priority_queue *queue)
 {
         const size_t arr_length = queue->length;
         const size_t obj_size = queue->esize;
@@ -184,7 +202,8 @@ void *peek(priority_queue *queue)
         return NULL;
 }
 
-void show_priority_queue(priority_queue *queue, to_string_fn to_string, bool reverse)
+void
+priority_queue_show(priority_queue *queue, to_string_fn to_string, bool reverse)
 {
         const size_t arr_length = queue->length;
         const size_t obj_size = queue->esize;
@@ -203,7 +222,8 @@ void show_priority_queue(priority_queue *queue, to_string_fn to_string, bool rev
         }
 }
 
-void destroy_priority_queue(priority_queue *queue)
+void
+priority_queue_free(priority_queue *queue)
 {
         if (queue != NULL) {
                 if (queue->array != NULL) {
