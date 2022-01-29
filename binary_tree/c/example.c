@@ -2,7 +2,7 @@
 
 #include "binary_tree.h"
 
-#define ARR_LEN(ARR) (sizeof (ARR) / sizeof (ARR)[0])
+#define ARR_LEN(ARR) (sizeof(ARR) / sizeof((ARR)[0]))
 
 struct student {
         int id;
@@ -21,14 +21,14 @@ struct student students[] = {
 int compare_by_id(void *a, void *b);
 void show_students(void *);
 
-int main(int argc, char *argv[])
+int main(void)
 {
         binary_tree *student_tree = binary_tree_create(sizeof(struct student));
 
         if (student_tree == NULL)
                 return EXIT_FAILURE;
 
-        for (int i = 0; i < ARR_LEN(students); i++)
+        for (size_t i = 0; i < ARR_LEN(students); ++i)
                 binary_tree_insert(student_tree, &students[i], compare_by_id);
 
         printf("Pre Order:\n");
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
         printf("Post Order:\n");
         binary_tree_show(student_tree, POST_ORDER, show_students);
 
-        binary_tree_free(student_tree);
+        binary_tree_free(&student_tree);
 
         return EXIT_SUCCESS;
 }

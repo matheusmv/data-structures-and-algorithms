@@ -23,6 +23,6 @@ int binary_tree_remove(binary_tree *tree, void *buffer);
 int binary_tree_remove_obj(binary_tree *tree, void *object, comparator_fn comparator, void *buffer);
 void *binary_tree_search_obj(binary_tree *tree, void *object, comparator_fn comparator);
 void binary_tree_show(binary_tree *tree, traversal_mode mode, to_string_fn to_string);
-void binary_tree_free(binary_tree *tree);
+void binary_tree_free(binary_tree **tree);
 
 #endif
