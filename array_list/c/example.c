@@ -2,7 +2,7 @@
 
 #include "array_list.h"
 
-#define ARR_LEN(ARR) (sizeof (ARR) / sizeof (ARR)[0])
+#define ARR_LEN(ARR) (sizeof(ARR) / sizeof((ARR)[0]))
 
 struct state {
         int number;
@@ -56,14 +56,14 @@ struct user users[] = {
 void show_states(void *obj);
 void show_users(void *obj);
 
-int main(int argc, char *argv[])
+int main(void)
 {
         array_list *state_list = array_list_create(10, sizeof(struct state));
 
         if (state_list == NULL)
                 return EXIT_FAILURE;
 
-        for (int i = 0; i < ARR_LEN(states); i++)
+        for (size_t i = 0; i < ARR_LEN(states); ++i)
                 array_list_append(state_list, &states[i]);
 
         array_list_remove(state_list, NULL);
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
         array_list_show(state_list, show_states, IN_ORDER);
 
-        array_list_free(state_list);
+        array_list_free(&state_list);
 
         /********************************************************************/
 
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 
         array_list_show(users_list, show_users, IN_ORDER);
 
-        for (int i = 0; i < ARR_LEN(users); i++)
+        for (size_t i = 0; i < ARR_LEN(users); ++i)
                 array_list_append(users_list, &users[i]);
 
         array_list_remove(users_list, NULL);
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 
         array_list_show(users_list, show_users, IN_ORDER);
 
-        array_list_free(users_list);
+        array_list_free(&users_list);
 
         return EXIT_SUCCESS;
 }
