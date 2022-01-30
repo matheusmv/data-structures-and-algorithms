@@ -1,6 +1,6 @@
-/**
- * gcc stack.c example.c -o program
- */
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "stack.h"
 
 struct student {
@@ -19,18 +19,18 @@ struct student students[] = {
 
 void show_student(void *obj);
 
-int main(int argc, char *argv[])
+int main(void)
 {
-        stack *student_stack = new_stack(sizeof(struct student));
-
-        if (student_stack == NULL)
+        stack *student_stack = stack_new(sizeof(struct student));
+        if (student_stack == NULL) {
                 return EXIT_FAILURE;
+        }
 
-        push(student_stack, &students[0]);
-        push(student_stack, &students[1]);
-        push(student_stack, &students[2]);
+        stack_push(student_stack, &students[0]);
+        stack_push(student_stack, &students[1]);
+        stack_push(student_stack, &students[2]);
 
-        void *result = peek(student_stack);
+        void *result = stack_peek(student_stack);
 
         if (result != NULL) {
                 printf("\tfound:\n");
@@ -39,16 +39,16 @@ int main(int argc, char *argv[])
         }
 
         printf("in order\n");
-        show_stack(student_stack, show_student, IN_ORDER);
+        stack_show(student_stack, show_student, IN_ORDER);
         printf("\n");
 
-        pop(student_stack);
+        stack_pop(student_stack);
 
         printf("reverse\n");
-        show_stack(student_stack, show_student, REVERSE);
+        stack_show(student_stack, show_student, REVERSE);
         printf("\n");
 
-        result = peek(student_stack);
+        result = stack_peek(student_stack);
 
         if (result != NULL) {
                 printf("\tfound:\n");
@@ -56,12 +56,13 @@ int main(int argc, char *argv[])
                 printf("\n");
         }
 
-        destroy_stack(student_stack);
+        stack_free(&student_stack);
 
         return EXIT_SUCCESS;
 }
 
-void show_student(void *obj)
+void
+show_student(void *obj)
 {
         struct student *result = obj;
 

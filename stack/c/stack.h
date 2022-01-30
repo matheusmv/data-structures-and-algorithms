@@ -1,26 +1,23 @@
-#ifndef _STACK
-#define _STACK
+#ifndef STACK_H
+#define STACK_H
 
-#include <errno.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
-#define GETSTDERROR() (strerror(errno))
 
 #define IN_ORDER false
-#define REVERSE true
+#define REVERSE  true
 
-typedef struct __stack stack;
+typedef struct stack stack;
 
-stack *new_stack(size_t element_size);
-size_t get_length(stack *stack);
-bool is_empty(stack *stack);
-void push(stack *stack, void *object);
-void pop(stack *stack);
-void *peek(stack *stack);
-void show_stack(stack *stack, void (*to_string)(void *object), bool reverse);
-void destroy_stack(stack *stack);
+typedef void (*to_string_fn)(void *object);
+
+stack *stack_new(size_t element_size);
+size_t stack_length(stack *stack);
+bool stack_is_empty(stack *stack);
+void stack_push(stack *stack, void *object);
+void stack_pop(stack *stack);
+void *stack_peek(stack *stack);
+void stack_show(stack *stack, to_string_fn to_string, bool reverse);
+void stack_free(stack **stack);
 
 #endif
