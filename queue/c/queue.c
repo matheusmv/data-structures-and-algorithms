@@ -111,7 +111,7 @@ queue_enqueue(queue *queue, void *object)
 }
 
 void
-queue_dequeue(queue *queue)
+queue_dequeue(queue *queue, void *buffer)
 {
         if (!queue_is_empty(queue)) {
                 node *start = queue->start;
@@ -121,6 +121,10 @@ queue_dequeue(queue *queue)
                         queue->end = NULL;
                 } else {
                         queue->start = start->next;
+                }
+
+                if (buffer != NULL && start != NULL) {
+                        memmove(buffer, start, queue->element_size);
                 }
 
                 decrease_queue_length(queue);
@@ -194,7 +198,7 @@ queue_free(queue **queue)
 {
         if (queue != NULL && *queue != NULL) {
                 while (!queue_is_empty(*queue)) {
-                        queue_dequeue(*queue);
+                        queue_dequeue(*queue, NULL);
                 }
 
                 (*queue)->length = 0;

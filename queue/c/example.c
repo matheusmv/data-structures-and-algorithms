@@ -41,7 +41,7 @@ int main(void)
         queue_show(student_queue, show_student, IN_ORDER);
         printf("\n");
 
-        queue_dequeue(student_queue);
+        queue_dequeue(student_queue, NULL);
 
         queue_show(student_queue, show_student, IN_ORDER);
         printf("\n");
