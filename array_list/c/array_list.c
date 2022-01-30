@@ -240,14 +240,14 @@ array_list_show(array_list *arr_list, to_string_fn to_string, bool reverse)
         const size_t obj_size = arr_list->element_size;
 
         if (arr_length > 0) {
-                int start = reverse ? arr_length : 0;
-                int end = reverse ? 0 : arr_length;
+                size_t start = reverse ? arr_length : 0;
+                size_t end = reverse ? 0 : arr_length;
 
                 if (reverse) {
-                        for (int i = start - 1; i >= end; --i)
+                        for (size_t i = start - 1; i > end; --i)
                                 to_string(get_index(arr_list->array, obj_size, i));
                 } else {
-                        for (int i = start; i < end; ++i)
+                        for (size_t i = start; i < end; ++i)
                                 to_string(get_index(arr_list->array, obj_size, i));
                 }
         }
