@@ -3,11 +3,11 @@
 
 #include "double_linked_list.h"
 
-#define ARR_LEN(ARR) (sizeof (ARR) / sizeof (ARR)[0])
+#define ARR_LEN(ARR) (sizeof(ARR) / sizeof((ARR)[0]))
 
 struct student {
-        int id;
-        char *name;
+        int   id;
+        char  *name;
         float n1, n2, n3;
 };
 
@@ -22,15 +22,16 @@ struct student students[] = {
 void show_students(void *object);
 void show_students_with_grades(void *object);
 
-int main(int argc, char *argv[])
+int main(void)
 {
         double_linked_list *student_list = double_linked_list_create(sizeof(struct student));
-
-        if (student_list == NULL)
+        if (student_list == NULL) {
                 return EXIT_FAILURE;
+        }
 
-        for (int i = 0; i < ARR_LEN(students); i++)
+        for (size_t i = 0; i < ARR_LEN(students); ++i) {
                 double_linked_list_insert_first(student_list, &students[i]);
+        }
 
         double_linked_list_show(student_list, show_students, IN_ORDER);
         double_linked_list_show(student_list, show_students, REVERSE);
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
 
         double_linked_list_show(student_list, show_students_with_grades, IN_ORDER);
 
-        double_linked_list_free(student_list);
+        double_linked_list_free(&student_list);
 
         return EXIT_SUCCESS;
 }

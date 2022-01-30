@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #define IN_ORDER false
-#define REVERSE true
+#define REVERSE  true
 
 typedef struct double_linked_list double_linked_list;
 
@@ -18,10 +18,10 @@ void double_linked_list_insert_first(double_linked_list *list, void *object);
 void double_linked_list_insert_last(double_linked_list *list, void *object);
 void double_linked_list_remove_first(double_linked_list *list, void *buffer);
 void double_linked_list_remove_last(double_linked_list *list, void *buffer);
-void double_linked_list_insert_obj_at(double_linked_list *list, void *object, int index);
-void *double_linked_list_get_obj_at(double_linked_list *list, int index);
-void double_linked_list_remove_obj_at(double_linked_list *list, int index, void *buffer);
+void double_linked_list_insert_obj_at(double_linked_list *list, void *object, size_t index);
+void *double_linked_list_get_obj_at(double_linked_list *list, size_t index);
+void double_linked_list_remove_obj_at(double_linked_list *list, size_t index, void *buffer);
 void double_linked_list_show(double_linked_list *list, to_string_fn to_string, bool reverse);
-void double_linked_list_free(double_linked_list *list);
+void double_linked_list_free(double_linked_list **list);
 
 #endif
