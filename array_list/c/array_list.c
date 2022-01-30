@@ -108,7 +108,7 @@ array_list_append(array_list *arr_list, void *object)
         const size_t arr_length = arr_list->length;
         const size_t obj_size = arr_list->element_size;
 
-        if (!array_has_storage_available(arr_list, obj_size)) {
+        if (!array_has_storage_available(arr_list, 1)) {
                 increase_array_size(arr_list);
         }
 
@@ -131,7 +131,7 @@ array_list_append_at(array_list *arr_list, void *object, size_t index)
                 exit(EXIT_FAILURE);
         }
 
-        if (!array_has_storage_available(arr_list, obj_size)) {
+        if (!array_has_storage_available(arr_list, 1)) {
                 increase_array_size(arr_list);
         }
 
