@@ -1,31 +1,40 @@
 #include "queue.h"
 
-typedef struct __node {
+#include <stdio.h>
+#include <string.h>
+
+typedef struct node node;
+struct node {
         void *value;
-        struct __node *next;
-} node;
+        node *next;
+};
 
-typedef struct __queue {
-        size_t esize;
+typedef struct queue queue;
+struct queue {
+        size_t element_size;
         size_t length;
-        struct __node *start;
-        struct __node *end;
-} queue;
+        node   *start;
+        node   *end;
+};
 
-static void increase_queue_length(queue *queue)
+static void
+increase_queue_length(queue *queue)
 {
         queue->length += 1;
 }
 
-static void decrease_queue_length(queue *queue)
+static void
+decrease_queue_length(queue *queue)
 {
         const size_t queue_length = queue->length;
 
-        if (queue_length > 0)
+        if (queue_length > 0) {
                 queue->length -= 1;
+        }
 }
 
-static void *copy_object(const void *obj, size_t obj_size)
+static void *
+copy_object(const void *obj, size_t obj_size)
 {
         void *copy;
 
@@ -36,15 +45,16 @@ static void *copy_object(const void *obj, size_t obj_size)
         return copy;
 }
 
-queue *new_queue(size_t element_size)
+queue *
+queue_new(size_t element_size)
 {
         queue *new_queue = malloc(sizeof(queue));
-
-        if (new_queue == NULL)
+        if (new_queue == NULL) {
                 return NULL;
+        }
 
         *new_queue = (queue) {
-                .esize = element_size,
+                .element_size = element_size,
                 .length = 0,
                 .start = NULL,
                 .end = NULL,
@@ -53,17 +63,20 @@ queue *new_queue(size_t element_size)
         return new_queue;
 }
 
-size_t get_length(queue *queue)
+size_t
+queue_length(queue *queue)
 {
         return queue->length;
 }
 
-bool is_empty(queue *queue)
+bool
+queue_is_empty(queue *queue)
 {
         return queue->end == NULL;
 }
 
-void enqueue(queue *queue, void *object)
+void
+queue_enqueue(queue *queue, void *object)
 {
         if (queue != NULL) {
                 node *new_node = malloc(sizeof(node));
@@ -71,23 +84,24 @@ void enqueue(queue *queue, void *object)
                 if (new_node != NULL) {
                         node *end = queue->end;
 
-                        if (!is_empty(queue))
+                        if (!queue_is_empty(queue))
                                 end->next = new_node;
 
                         *new_node = (node) {
                                 .next = NULL,
-                                .value = copy_object(object, queue->esize),
+                                .value = copy_object(object, queue->element_size),
                         };
 
                         if (new_node->value == NULL) {
                                 fprintf(stderr, "***error creating object***\n");
                                 free(new_node);
-                                destroy_queue(queue);
+                                queue_free(&queue);
                                 exit(EXIT_FAILURE);
                         }
 
-                        if (queue->start == NULL)
+                        if (queue->start == NULL) {
                                 queue->start = new_node;
+                        }
 
                         queue->end = new_node;
 
@@ -96,12 +110,13 @@ void enqueue(queue *queue, void *object)
         }
 }
 
-void dequeue(queue *queue)
+void
+queue_dequeue(queue *queue)
 {
-        if (!is_empty(queue)) {
+        if (!queue_is_empty(queue)) {
                 node *start = queue->start;
 
-                if (get_length(queue) == 1) {
+                if (queue_length(queue) == 1) {
                         queue->start = NULL;
                         queue->end = NULL;
                 } else {
@@ -114,23 +129,26 @@ void dequeue(queue *queue)
         }
 }
 
-void *peek(queue *queue)
+void *
+queue_peek(queue *queue)
 {
-        if (!is_empty(queue))
+        if (!queue_is_empty(queue)) {
                 return queue->start->value;
+        }
 
         return NULL;
 }
 
-static node *get_node(queue *queue, int index)
+static node *
+get_node(queue *queue, size_t index)
 {
-        if (!is_empty(queue)) {
+        if (!queue_is_empty(queue)) {
                 const size_t queue_length = queue->length;
                 const size_t queue_end = queue_length - 1;
 
-                if (index > queue_end || index < 0) {
-                        fprintf(stderr, "***index [%d] out of bounds***\n", index);
-                        destroy_queue(queue);
+                if (index > queue_end) {
+                        fprintf(stderr, "***index [%ld] out of bounds***\n", index);
+                        queue_free(&queue);
                         exit(EXIT_FAILURE);
                 }
 
@@ -139,8 +157,9 @@ static node *get_node(queue *queue, int index)
                 if (index == queue_end) {
                         node = queue->end;
                 } else {
-                        for (int i = 0; i < index; i++)
+                        for (size_t i = 0; i < index; i++) {
                                 node = node->next;
+                        }
                 }
 
                 return node;
@@ -149,35 +168,40 @@ static node *get_node(queue *queue, int index)
         return NULL;
 }
 
-void show_queue(queue *queue, void (*to_string)(void *object), bool reverse)
+void
+queue_show(queue *queue, to_string_fn to_string, bool reverse)
 {
-        if (!is_empty(queue)) {
+        if (!queue_is_empty(queue)) {
                 const size_t queue_length = queue->length;
 
-                int start = reverse ? queue_length : 0;
-                int end = reverse ? 0 : queue_length;
+                size_t start = reverse ? queue_length : 0;
+                size_t end = reverse ? 0 : queue_length;
 
                 if (reverse) {
-                        for (int i = start - 1; i >= end; i--)
+                        for (size_t i = start - 1; i > end; --i) {
                                 to_string(get_node(queue, i)->value);
+                        }
                 } else {
-                        for (int i = start; i < end; i++)
+                        for (size_t i = start; i < end; ++i) {
                                 to_string(get_node(queue, i)->value);
+                        }
                 }
         }
 }
 
-void destroy_queue(queue *queue)
+void
+queue_free(queue **queue)
 {
-        if (queue != NULL) {
-                while (!is_empty(queue))
-                        dequeue(queue);
+        if (queue != NULL && *queue != NULL) {
+                while (!queue_is_empty(*queue)) {
+                        queue_dequeue(*queue);
+                }
 
-                queue->length = -1;
-                queue->start = NULL;
-                queue->end = NULL;
+                (*queue)->length = 0;
+                (*queue)->start = NULL;
+                (*queue)->end = NULL;
 
-                free(queue);
-                queue = NULL;
+                free(*queue);
+                *queue = NULL;
         }
 }

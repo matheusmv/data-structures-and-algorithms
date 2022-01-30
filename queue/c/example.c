@@ -1,6 +1,6 @@
-/**
- * gcc queue.c example.c -o program
- */
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "queue.h"
 
 struct student {
@@ -19,18 +19,18 @@ struct student students[] = {
 
 void show_student(void *object);
 
-int main(int argc, char *argv[])
+int main(void)
 {
-        queue *student_queue = new_queue(sizeof(struct student));
-
-        if (student_queue == NULL)
+        queue *student_queue = queue_new(sizeof(struct student));
+        if (student_queue == NULL) {
                 return EXIT_FAILURE;
+        }
 
-        enqueue(student_queue, &students[0]);
-        enqueue(student_queue, &students[1]);
-        enqueue(student_queue, &students[2]);
+        queue_enqueue(student_queue, &students[0]);
+        queue_enqueue(student_queue, &students[1]);
+        queue_enqueue(student_queue, &students[2]);
 
-        void *result = peek(student_queue);
+        void *result = queue_peek(student_queue);
 
         if (result != NULL) {
                 printf("\tfound:\n");
@@ -38,15 +38,15 @@ int main(int argc, char *argv[])
                 printf("\n");
         }
 
-        show_queue(student_queue, show_student, IN_ORDER);
+        queue_show(student_queue, show_student, IN_ORDER);
         printf("\n");
 
-        dequeue(student_queue);
+        queue_dequeue(student_queue);
 
-        show_queue(student_queue, show_student, IN_ORDER);
+        queue_show(student_queue, show_student, IN_ORDER);
         printf("\n");
 
-        result = peek(student_queue);
+        result = queue_peek(student_queue);
 
         if (result != NULL) {
                 printf("\tfound:\n");
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
                 printf("\n");
         }
 
-        destroy_queue(student_queue);
+        queue_free(&student_queue);
 
         return EXIT_SUCCESS;
 }
