@@ -42,7 +42,7 @@ int main(void)
         stack_show(student_stack, show_student, IN_ORDER);
         printf("\n");
 
-        stack_pop(student_stack);
+        stack_pop(student_stack, NULL);
 
         printf("reverse\n");
         stack_show(student_stack, show_student, REVERSE);

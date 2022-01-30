@@ -108,7 +108,7 @@ stack_push(stack *stack, void *object)
 }
 
 void
-stack_pop(stack *stack)
+stack_pop(stack *stack, void *buffer)
 {
         if (!stack_is_empty(stack)) {
                 node *top = stack->top;
@@ -118,6 +118,10 @@ stack_pop(stack *stack)
                         stack->base = NULL;
                 } else {
                         stack->top = top->next;
+                }
+
+                if (buffer != NULL && top != NULL) {
+                        memmove(buffer, top, stack->element_size);
                 }
 
                 decrease_stack_length(stack);
@@ -191,7 +195,7 @@ stack_free(stack **stack)
 {
         if (stack != NULL && *stack != NULL) {
                 while (!stack_is_empty(*stack)) {
-                        stack_pop(*stack);
+                        stack_pop(*stack, NULL);
                 }
 
                 (*stack)->length = 0;
