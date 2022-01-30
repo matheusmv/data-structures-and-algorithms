@@ -157,7 +157,7 @@ base64_decode(const char *src, unsigned char *dest, size_t size)
                 return -1;
         }
 
-        for (int i = 0; i < src_total_length; ++i) {
+        for (size_t i = 0; i < src_total_length; ++i) {
                 if (!isvalidb64char(src[i])) {
                         fprintf(stderr, error_message[DECODE_INVALID_INPUT], src[i], src);
                         return -1;
@@ -166,7 +166,7 @@ base64_decode(const char *src, unsigned char *dest, size_t size)
 
         memset(dest, 0, size);
 
-        for (int i = 0, j = 0; i < src_total_length; i += 4, j += 3) {
+        for (size_t i = 0, j = 0; i < src_total_length; i += 4, j += 3) {
                 size_t src_char = decode_table[src[i] - 43];
 
                 src_char = (src_char << 6) | decode_table[src[i + 1] - 43];

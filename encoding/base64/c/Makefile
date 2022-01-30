@@ -1,6 +1,6 @@
 CC := gcc
 
-CFLAGS := -pedantic-errors -Wall -Werror
+CFLAGS := -pedantic-errors -Wall -Werror -Wextra -std=c11
 
 SRCS := base64.c example.c
 
@@ -17,3 +17,8 @@ relase:
 
 clean:
 	$(RM) $(BIN)
+
+BADFUNCS='[^_.>a-zA-Z0-9](str(n?cpy|n?cat|xfrm|n?dup|str|pbrk|tok|_)|stpn?cpy|a?sn?printf|byte_)'
+check:
+	@echo Files with potentially dangerous functions
+	@egrep $(BADFUNCS) $(SRCS) || true
