@@ -3,7 +3,7 @@
 
 #include "linked_list.h"
 
-#define ARR_LEN(ARR) (sizeof (ARR) / sizeof (ARR)[0])
+#define ARR_LEN(ARR) (sizeof(ARR) / sizeof((ARR)[0]))
 
 struct student {
         int id;
@@ -22,12 +22,12 @@ struct student students[] = {
 void show_students(void *object);
 void show_students_with_grades(void *object);
 
-int main(int argc, char *argv[])
+int main(void)
 {
         linked_list *student_list = linked_list_create(sizeof(struct student));
-
-        if (student_list == NULL)
+        if (student_list == NULL) {
                 return EXIT_FAILURE;
+        }
 
         linked_list_insert_last(student_list, &students[4]);
         linked_list_insert_last(student_list, &students[3]);
@@ -36,8 +36,9 @@ int main(int argc, char *argv[])
         linked_list_show(student_list, show_students, IN_ORDER);
         linked_list_show(student_list, show_students_with_grades, REVERSE);
 
-        for (int i = 0; i < ARR_LEN(students); i++)
+        for (size_t i = 0; i < ARR_LEN(students); ++i) {
                 linked_list_insert_first(student_list, &students[i]);
+        }
 
         linked_list_show(student_list, show_students, IN_ORDER);
 
@@ -65,7 +66,7 @@ int main(int argc, char *argv[])
         linked_list_show(student_list, show_students, IN_ORDER);
         linked_list_show(student_list, show_students_with_grades, IN_ORDER);
 
-        linked_list_free(student_list);
+        linked_list_free(&student_list);
 
         return EXIT_SUCCESS;
 }
